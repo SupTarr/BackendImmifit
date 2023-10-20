@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const refreshTokenRoutes = express.Router();
-const refreshTokenController = require('../Controllers/refreshTokenController');
+const refreshTokenController = require("../Controllers/refreshTokenController");
 
-refreshTokenRoutes.get('/', refreshTokenController.handleRefreshToken);
+refreshTokenRoutes.get("/", refreshTokenController.handleRefreshToken);
 
 module.exports = refreshTokenRoutes;
