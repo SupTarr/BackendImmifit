@@ -1,6 +1,7 @@
+const User = require("../Models/userModel");
 const Activities = require("../Models/activitiesModel");
-const { cloudinary } = require('../configs/cloudinary.config');
 
+const { cloudinary } = require("../configs/cloudinary.config");
 const { v4: uuidv4 } = require("uuid");
 
 const getAllActivities = async (req, res, next) => {
@@ -25,15 +26,16 @@ const getActivityByUsername = async (req, res, next) => {
   const activity = await Activities.find({
     username: req.params.username,
   });
+
   res.send(activity);
 };
 
 const getActivityByType = async (req, res, next) => {
   const { username, type } = req.params;
 
-  const activity = await Activities.find({ 
-    username: username, 
-    activity_type: type 
+  const activity = await Activities.find({
+    username: username,
+    activity_type: type,
   });
 
   if (!activity) {
@@ -43,9 +45,6 @@ const getActivityByType = async (req, res, next) => {
   res.status(200).send(activity);
 };
 
-const User = require("../Models/userModel");
-const { request } = require("express");
-
 const createActivity = async (req, res, next) => {
   const user = await User.findOne({
     username: req.body.username,
@@ -54,13 +53,13 @@ const createActivity = async (req, res, next) => {
   const uploadResponse = await cloudinary.uploader.upload(fileStr, {
     upload_preset: "immifit",
   });
-  console.log(uploadResponse);
+
   try {
     const newActivity = new Activities({
       img: {
         name: req.body.img.name,
-        id: '',
-        url: '',
+        id: "",
+        url: "",
         contentType: req.body.img.contentType,
       },
       activity_id: uuidv4(),
@@ -71,10 +70,9 @@ const createActivity = async (req, res, next) => {
     newActivity.img.id = uploadResponse.asset_id;
     newActivity.img.url = uploadResponse.secure_url;
     await newActivity.save();
-    res.status(200).send(newActivity)
+    res.status(200).send(newActivity);
   } catch (error) {
     res.status(400).send(error);
-    console.log(error);
   }
 };
 
@@ -96,17 +94,16 @@ const editActivityById = async (req, res, next) => {
         url: uploadResponse.secure_url,
         contentType: req.body.img.contentType,
       },
-      ...req.body
-    }
+      ...req.body,
+    };
 
-    update.img.id = uploadResponse.asset_id
+    update.img.id = uploadResponse.asset_id;
     update.img.url = uploadResponse.secure_url;
 
     await activity.updateOne(update);
-    res.status(200).send(activity)
+    res.status(200).send(activity);
   } catch (error) {
     res.status(400).send(error);
-    console.log(error);
   }
 };
 

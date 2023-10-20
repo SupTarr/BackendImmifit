@@ -34,28 +34,28 @@ const userSchema = new mongoose.Schema(
     refreshToken: String,
     profile: {
       about: {
-        type: String
+        type: String,
       },
       gender: {
-        type: String
+        type: String,
       },
       age: {
-        type: Number
+        type: Number,
       },
       height: {
-        type: Number
+        type: Number,
       },
       weight: {
-        type: Number
+        type: Number,
       },
       bmi: {
-        type: Number
+        type: Number,
       },
-    }
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const userModel = new mongoose.model("User", userSchema);

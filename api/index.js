@@ -23,8 +23,7 @@ if (config.isVercel) {
       console.log("Connected to MongoDB");
       next();
     } catch (error) {
-      console.log(error);
-      res.status(500).send();
+      res.status(500).send(error);
     }
   });
 }
@@ -35,7 +34,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: '*',
+    origin: "*",
     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
   })
 );
