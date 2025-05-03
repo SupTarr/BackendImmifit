@@ -12,12 +12,10 @@ const handleLogin = async (req, res) => {
 
   const foundUser = await User.findOne({ username: username }).exec();
 
-  if (!foundUser) return res.sendStatus(401); //Unauthorized
-  // evaluate password
+  if (!foundUser) return res.sendStatus(401);
   const match = await bcrypt.compare(password, foundUser.password);
   if (match) {
     const roles = Object.values(foundUser.roles).filter(Boolean);
-    // create JWTs
     const user_id = foundUser.user_id;
     const accessToken = jwt.sign(
       {
@@ -29,15 +27,14 @@ const handleLogin = async (req, res) => {
       config.accessTokenSecret,
       { expiresIn: "10s" }
     );
+
     const refreshToken = jwt.sign(
       { username: foundUser.username },
       config.refreshTokenSecret,
       { expiresIn: "1d" }
     );
-    // Saving refreshToken with current user
-    foundUser.refreshToken = refreshToken;
 
-    // Creates Secure Cookie with refresh token
+    foundUser.refreshToken = refreshToken;
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
       secure: true,
@@ -45,7 +42,6 @@ const handleLogin = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    // Send authorization roles and access token to user
     res.json({ roles, user_id, accessToken });
   } else {
     res.sendStatus(401);

@@ -7,7 +7,6 @@ const config = require("./configs/config");
 if (config.isVercel) {
   app.use(async (req, res, next) => {
     try {
-      // process.env : read environment variables
       await mongoose.connect(config.mongoUri, config.mongoOptions);
       console.log("Connected to MongoDB");
       next();
@@ -22,7 +21,7 @@ app.use(bodyParser.json());
 app.use(
   cors({
     origin: "*",
-    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    optionsSuccessStatus: 200,
   }),
 );
 
