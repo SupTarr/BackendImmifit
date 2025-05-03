@@ -269,13 +269,11 @@ export const removeActivityById = async (
       return res.status(404).send({ message: "Activity not found" });
     }
 
-    // Optional: Delete image from Cloudinary
     if (activity.img && activity.img.id) {
       try {
         await cloudinary.uploader.destroy(activity.img.id);
       } catch (deleteError) {
         console.error("Cloudinary delete error:", deleteError);
-        // Decide if you want to stop the process or just log the error
       }
     }
 
