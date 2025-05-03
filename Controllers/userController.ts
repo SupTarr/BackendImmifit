@@ -13,68 +13,15 @@ interface GetUserParams {
   user_id?: string;
 }
 
-export const createUser = async (
-  req: Request<{}, {}, CreateUserBody>,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username, email, and password are required." });
-  }
-
-  try {
-    const duplicateUser = await User.findOne({ username: username }).exec();
-    if (duplicateUser) {
-      return res.status(409).json({ message: "Username already exists." });
-    }
-
-    const duplicateEmail = await User.findOne({ email: email }).exec();
-    if (duplicateEmail) {
-      return res.status(409).json({ message: "Email already exists." });
-    }
-
-    const hashedPwd = await bcrypt.hash(password, 10);
-    const newUser = await User.create({
-      username: username,
-      user_id: uuidv4(),
-      email: email,
-      password: hashedPwd,
-    });
-
-    res
-      .status(201)
-      .json({
-        success: `New user ${username} created!`,
-        userId: newUser.user_id,
-      });
-  } catch (error) {
-    console.error("Error creating user:", error);
-    next(error);
-  }
-};
-
-export const getAllUsers = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const users: IUser[] = await User.find()
-      .select("-password -refreshToken")
-      .exec();
-    if (!users || users.length === 0) {
-      return res.status(200).json([]);
-    }
-
-    res.status(200).json(users);
-  } catch (error) {
-    console.error("Error fetching all users:", error);
-    next(error);
-  }
-};
+interface ProfileRequestBody {
+  username: string;
+  about?: string;
+  gender?: string;
+  age?: number;
+  height?: number;
+  weight?: number;
+  bmi?: number;
+}
 
 export const getUserById = async (
   req: Request<GetUserParams>,
@@ -100,6 +47,42 @@ export const getUserById = async (
     res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user by ID:", error);
+    next(error);
+  }
+};
+
+export const addUserProfile = async (
+  req: Request<{}, {}, ProfileRequestBody>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { username, ...profileData } = req.body;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ message: "Username is required in the request body." });
+    }
+
+    const foundUser: IUser | null = await User.findOne({
+      username: username,
+    }).exec();
+    if (!foundUser) {
+      return res
+        .status(404)
+        .json({ message: `User with username '${username}' not found.` });
+    }
+
+    if (!foundUser.profile) {
+      foundUser.profile = {};
+    }
+
+    Object.assign(foundUser.profile, profileData);
+    const updatedUser = await foundUser.save();
+    res.status(200).json(updatedUser.profile);
+  } catch (error) {
+    console.error("Error adding/updating user profile:", error);
     next(error);
   }
 };
