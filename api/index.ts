@@ -3,6 +3,9 @@ import cors from "cors";
 import mongoose from "mongoose";
 import config from "../configs/config.js";
 import dotenv from "dotenv";
+import authRoutes from "../Routes/authRoute.js";
+import userRoutes from "../Routes/userRoute.js";
+import activityRoutes from "../Routes/activitiesRoute.js";
 
 dotenv.config();
 
@@ -48,19 +51,8 @@ app.use(
   }),
 );
 
-import activityRoutes from "../Routes/activitiesRoute.js";
-app.use("/activities", activityRoutes);
-
-import userRoutes from "../Routes/userRoute.js";
-app.use("/users", userRoutes);
-
-import authRoutes from "../Routes/authRoute.js";
 app.use("/auth", authRoutes);
-
-import refreshTokenRoutes from "../Routes/refreshTokenRoute.js";
-app.use("/refresh", refreshTokenRoutes);
-
-import logoutRoutes from "../Routes/logoutRoute.js";
-app.use("/logout", logoutRoutes);
+app.use("/users", userRoutes);
+app.use("/activities", activityRoutes);
 
 export { app };
