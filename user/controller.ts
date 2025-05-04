@@ -1,8 +1,10 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { v4 as uuidv4 } from "uuid";
 import User, { IUser } from "../models/userModel.js";
 import Profile, { IProfile } from "../models/profileModel.js";
 import { UserIdParamsSchema, ProfileBodySchema } from "./model.js";
+
+type ProfileBodyType = typeof ProfileBodySchema.static;
 
 export const userPlugin = new Elysia({ prefix: "/users" })
   .get(
@@ -41,10 +43,18 @@ export const userPlugin = new Elysia({ prefix: "/users" })
 
   .put(
     "/:userId/profile",
-    async ({ params, body, set }) => {
+    async ({
+      params,
+      body,
+      set,
+    }: {
+      params: { userId: string };
+      body: ProfileBodyType;
+      set: any;
+    }) => {
+      // Explicitly type body
       const { userId } = params;
       const profileData = body;
-
       if (Object.keys(profileData).length === 0) {
         set.status = 400;
         return {
@@ -65,7 +75,6 @@ export const userPlugin = new Elysia({ prefix: "/users" })
 
         const updatePayload: Partial<IProfile> = { ...profileData };
         let unsetPayload: { [key: string]: any } = {};
-
         const height = profileData.height;
         const weight = profileData.weight;
 
@@ -75,7 +84,12 @@ export const userPlugin = new Elysia({ prefix: "/users" })
             (weight / (heightInMeters * heightInMeters)).toFixed(2),
           );
         } else {
-          unsetPayload["bmi"] = "";
+          if (
+            profileData.hasOwnProperty("height") ||
+            profileData.hasOwnProperty("weight")
+          ) {
+            unsetPayload["bmi"] = "";
+          }
         }
 
         const updateOperation: any = {
