@@ -72,7 +72,18 @@ const app = new Elysia()
       message: "message" in error ? error.message : "An unknown error occurred",
     };
   })
-  .get("/", () => ({ status: "SUCCESS", message: "API Root" }));
+  .get("/health", () => ({ status: "SUCCESS" }));
 
-export const handler = app.handle;
+if (!config.isVercel && typeof process !== 'undefined' && process.version) {
+  const port = process.env.PORT || 4001;
+  try {
+    app.listen(port, () => {
+      console.log(`🦊 Elysia is running locally at http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+  }
+}
+
+export default app.fetch;
 export { app };
