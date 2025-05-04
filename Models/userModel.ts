@@ -1,55 +1,31 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-interface IRoles {
-  User?: number;
-  Editor?: number;
-  Admin?: number;
-}
-
-interface IProfile {
-  about?: string;
-  gender?: string;
-  age?: number;
-  height?: number;
-  weight?: number;
-  bmi?: number;
+export enum Role {
+  User = 1000,
+  Admin = 2000,
 }
 
 export interface IUser extends Document {
-  user_id: string;
-  roles: IRoles;
-  username: string;
+  userId: string;
+  roles: Role[];
   email: string;
   password?: string;
   refreshToken?: string;
-  profile?: IProfile;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const userSchema: Schema<IUser> = new Schema(
   {
-    user_id: {
+    userId: {
       type: String,
       required: true,
       unique: true,
       index: true,
     },
     roles: {
-      User: {
-        type: Number,
-        default: 1000,
-      },
-      Editor: Number,
-      Admin: Number,
-    },
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      minlength: 3,
-      index: true,
+      type: [Number],
+      default: [Role.User],
     },
     email: {
       type: String,
@@ -57,6 +33,7 @@ const userSchema: Schema<IUser> = new Schema(
       unique: true,
       trim: true,
       match: [/.+\@.+\..+/, "Please fill a valid email address"],
+      lowercase: true,
     },
     password: {
       type: String,
@@ -66,14 +43,6 @@ const userSchema: Schema<IUser> = new Schema(
     refreshToken: {
       type: String,
       select: false,
-    },
-    profile: {
-      about: String,
-      gender: String,
-      age: Number,
-      height: Number,
-      weight: Number,
-      bmi: Number,
     },
   },
   {
