@@ -1,22 +1,78 @@
-import { app } from "./api/index.js";
-import mongoose, { ConnectOptions } from "mongoose";
+import { Elysia, t } from "elysia";
+import { cors } from "@elysiajs/cors";
+import { cookie } from "@elysiajs/cookie";
+import mongoose from "mongoose";
 import config from "./configs/config.js";
+import dotenv from "dotenv";
+import { authPlugin } from "./auth/controller.js";
+import { userPlugin } from "./user/controller.js";
+import { activitiesPlugin } from "./activities/controller.js";
 
-if (!config.isVercel) {
-  mongoose
-    .connect(config.mongoUri, config.mongoOptions as ConnectOptions)
-    .then(() => {
-      console.log("MongoDB Connected successfully (local)");
-      app.listen(config.port, () => {
-        console.log(`Express server listening on port ${config.port}`);
-      });
-    })
-    .catch((error) => {
-      console.error("MongoDB Connection Error (local):", error);
-      process.exit(1);
-    });
-} else {
-  console.log(
-    "Running in Vercel environment, DB connection handled per request.",
-  );
-}
+dotenv.config();
+
+const allowedOrigins = config.isVercel
+  ? ["https://immifit.suptarr.vercel.app"]
+  : ["http://localhost:3000", "http://localhost:4001"];
+
+const app = new Elysia()
+  .onRequest(async ({ set, request }) => {
+    if (config.isVercel && mongoose.connection.readyState !== 1) {
+      try {
+        await mongoose.connect(
+          config.mongoUri,
+          config.mongoOptions as mongoose.ConnectOptions,
+        );
+        console.log("Connected to MongoDB (Vercel)");
+      } catch (error) {
+        console.error("MongoDB Connection Error (Vercel):", error);
+        set.status = 500;
+        return "Internal Server Error: DB Connection Failed";
+      }
+    }
+  })
+  .use(
+    cors({
+      origin: (request): boolean => {
+        const origin = request.headers.get("origin");
+        if (!origin) return false;
+        return allowedOrigins.includes(origin);
+      },
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    }),
+  )
+  .use(cookie())
+  .use(authPlugin)
+  .use(userPlugin)
+  .use(activitiesPlugin)
+  .onError(({ code, error, set }) => {
+    console.error(`Error caught: ${code}`, error);
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return { status: "NOT_FOUND", message: "Route not found" };
+    } else if (code === "VALIDATION") {
+      set.status = 400;
+      return {
+        status: "VALIDATION_ERROR",
+        message: "Request validation failed",
+        details: error.message,
+      };
+    } else if (code === "INTERNAL_SERVER_ERROR") {
+      set.status = 500;
+      return {
+        status: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred",
+      };
+    }
+
+    set.status = 500;
+    return {
+      status: "UNKNOWN_ERROR",
+      message: "message" in error ? error.message : "An unknown error occurred",
+    };
+  })
+  .get("/", () => ({ status: "SUCCESS", message: "API Root" }));
+
+export const handler = app.handle;
+export { app };

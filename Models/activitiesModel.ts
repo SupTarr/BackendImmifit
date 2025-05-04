@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-interface IImage {
+export interface IImage {
   name: string;
   id?: string;
   url?: string;
@@ -9,19 +9,12 @@ interface IImage {
 
 export interface IActivities extends Document {
   img: IImage;
-  activity_id: string;
-  username: string;
-  user_id?: string;
-  activity_type:
-    | "Running"
-    | "Cycling"
-    | "Swimming"
-    | "Weight training"
-    | "Walking";
+  activityId: string;
+  userId: string;
+  type: "Running" | "Cycling" | "Swimming" | "Weight training" | "Walking";
   title: string;
-  date: Date;
-  start_time: Date;
-  end_time: Date;
+  startTime: Date;
+  endTime: Date;
   description?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -38,21 +31,19 @@ const activitiesSchema: Schema<IActivities> = new Schema(
       url: String,
       contentType: String,
     },
-    activity_id: {
+    activityId: {
       type: String,
       required: true,
       unique: true,
       index: true,
     },
-    username: {
+    userId: {
       type: String,
       required: true,
+      unique: true,
       index: true,
     },
-    user_id: {
-      type: String,
-    },
-    activity_type: {
+    type: {
       type: String,
       required: true,
       enum: ["Running", "Cycling", "Swimming", "Weight training", "Walking"],
@@ -61,15 +52,11 @@ const activitiesSchema: Schema<IActivities> = new Schema(
       type: String,
       required: true,
     },
-    date: {
+    startTime: {
       type: Date,
       required: true,
     },
-    start_time: {
-      type: Date,
-      required: true,
-    },
-    end_time: {
+    endTime: {
       type: Date,
       required: true,
     },
