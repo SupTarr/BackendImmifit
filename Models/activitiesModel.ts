@@ -8,7 +8,6 @@ export interface IImage {
 }
 
 export interface IActivities extends Document {
-  img: IImage;
   activityId: string;
   userId: string;
   type: "Running" | "Cycling" | "Swimming" | "Weight training" | "Walking";
@@ -16,21 +15,13 @@ export interface IActivities extends Document {
   startTime: Date;
   endTime: Date;
   description?: string;
+  img: IImage;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const activitiesSchema: Schema<IActivities> = new Schema(
   {
-    img: {
-      name: {
-        type: String,
-        required: true,
-      },
-      id: String,
-      url: String,
-      contentType: String,
-    },
     activityId: {
       type: String,
       required: true,
@@ -61,6 +52,15 @@ const activitiesSchema: Schema<IActivities> = new Schema(
       required: true,
     },
     description: String,
+    img: {
+      name: {
+        type: String,
+        required: true,
+      },
+      id: String,
+      url: String,
+      contentType: String,
+    },
   },
   {
     timestamps: true,

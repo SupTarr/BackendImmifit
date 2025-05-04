@@ -1,4 +1,5 @@
-import { Elysia } from "elysia";
+import { Elysia, Static } from "elysia";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
@@ -11,12 +12,22 @@ import {
   RefreshTokenPayload,
 } from "./model.js";
 
+type LoginBodyType = Static<typeof LoginBodySchema>;
+type RegisterBodyType = Static<typeof RegisterBodySchema>;
+
 export const authPlugin = new Elysia({ prefix: "/auth" })
   .post(
     "/login",
-    async ({ body, cookie, set }) => {
+    async ({
+      body,
+      cookie,
+      set,
+    }: {
+      body: LoginBodyType;
+      cookie: any;
+      set: any;
+    }) => {
       const { email, password } = body;
-
       const foundUser: IUser | null = await User.findOne({ email: email })
         .select("+password +refreshToken")
         .exec();
@@ -54,7 +65,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         cookie.jwt.set({
           value: refreshToken,
           httpOnly: true,
-          secure: true,
+          secure: "production",
           maxAge: 24 * 60 * 60,
           path: "/",
           sameSite: "strict",
@@ -75,9 +86,8 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
 
   .post(
     "/register",
-    async ({ body, set }) => {
+    async ({ body, set }: { body: RegisterBodyType; set: any }) => {
       const { email, password } = body;
-
       const duplicateEmail = await User.findOne({ email: email }).exec();
       if (duplicateEmail) {
         set.status = 409;
@@ -90,7 +100,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
           userId: uuidv4(),
           email: email,
           password: hashedPwd,
-        } as IUser);
+        } as Partial<IUser>);
 
         set.status = 201;
         return {
@@ -100,6 +110,14 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       } catch (error: any) {
         console.error("Error creating user:", error);
+        if (error instanceof mongoose.Error.ValidationError) {
+          set.status = 400;
+          return {
+            status: "VALIDATION_ERROR",
+            message: "User data validation failed.",
+            details: error.message,
+          };
+        }
         set.status = 500;
         return {
           status: "INTERNAL_SERVER_ERROR",
@@ -112,9 +130,12 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
 
   .post("/refresh", async ({ cookie, set }) => {
     const refreshToken = cookie.jwt;
-    if (!refreshToken) {
+    if (!refreshToken || typeof refreshToken !== "string") {
       set.status = 401;
-      return { status: "UNAUTHORIZED", message: "Refresh token missing." };
+      return {
+        status: "UNAUTHORIZED",
+        message: "Refresh token missing or invalid.",
+      };
     }
 
     try {
@@ -129,9 +150,9 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       }
 
       const decoded = jwt.verify(
-        refreshToken.value as string,
+        refreshToken,
         config.refreshTokenSecret,
-      ) as unknown as RefreshTokenPayload;
+      ) as RefreshTokenPayload;
 
       if (foundUser.userId !== decoded.userId) {
         cookie.jwt.remove();
@@ -170,7 +191,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
 
   .get("/logout", async ({ cookie, set }) => {
     const refreshToken = cookie.jwt;
-    if (!refreshToken) {
+    if (!refreshToken || typeof refreshToken !== "string") {
       set.status = 204;
       return;
     }

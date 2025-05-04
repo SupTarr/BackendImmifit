@@ -1,4 +1,4 @@
-import { Elysia, NotFoundError } from "elysia";
+import { Elysia, NotFoundError, Static } from "elysia";
 import { cloudinary } from "../configs/cloudinary.config.js";
 import { v4 as uuidv4 } from "uuid";
 import mongoose from "mongoose";
@@ -10,6 +10,9 @@ import {
   UserIdParamsSchema,
   EditActivityBodySchema,
 } from "./model.js";
+
+type CreateActivityBodyType = Static<typeof CreateActivityBodySchema>;
+type EditActivityBodyType = Static<typeof EditActivityBodySchema>;
 
 async function uploadToCloudinary(file: File): Promise<IImage | null> {
   try {
@@ -119,7 +122,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
   .post(
     "/",
-    async ({ body, set }) => {
+    async ({ body, set }: { body: CreateActivityBodyType; set: any }) => {
       const { img, userId, date, ...activityData } = body;
 
       try {
@@ -128,7 +131,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
           throw new NotFoundError("User specified not found.");
         }
 
-        const uploadedImgData = await uploadToCloudinary(img);
+        const uploadedImgData = await uploadToCloudinary(img as File);
         if (!uploadedImgData) {
           set.status = 500;
           return {
@@ -178,7 +181,15 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
   .put(
     "/:activityId",
-    async ({ params, body, set }) => {
+    async ({
+      params,
+      body,
+      set,
+    }: {
+      params: { activityId: string };
+      body: EditActivityBodyType;
+      set: any;
+    }) => {
       const { activityId } = params;
       const { img, date, ...updateData } = body;
 
@@ -195,7 +206,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
         let uploadedImgData: IImage | null | undefined = undefined;
 
-        if (img) {
+        if (img && img instanceof File) {
           if (existingActivity.img && existingActivity.img.id) {
             try {
               await cloudinary.uploader.destroy(existingActivity.img.id);
@@ -215,6 +226,10 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
               message: "Failed to upload new image.",
             };
           }
+        } else if (img !== undefined) {
+          console.warn(
+            "Received 'img' field in PUT request, but it was not a file.",
+          );
         }
 
         const finalUpdateData: Partial<IActivities> = { ...updateData };
