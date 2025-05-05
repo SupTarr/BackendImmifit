@@ -36,44 +36,43 @@ The Immifit API is the backend service for the Immifit application, built using 
 
 1. **Clone the repository:**
 
-```bash
-git clone <your-repository-url>
-cd BackendImmifit
-```
+    ```bash
+    git clone <your-repository-url>
+    cd BackendImmifit
+    ```
 
 2. **Install dependencies:**
 
-```bash
-npm install
-# or yarn install / pnpm install
-```
+    ```bash
+    npm install
+    # or yarn install / pnpm install
+    ```
 
 3. **Set up environment variables:**
-
 Create a `.env` file in the root directory by copying `.env.example` (if provided) or creating it manually. Fill in the required values:
 
-```dotenv
-# MongoDB
-MONGO_URI=your_mongodb_connection_string
-MONGO_USER=your_mongodb_user # Optional, depending on connection string/options
-MONGO_PASSWORD=your_mongodb_password # Optional
-MONGO_DATABASE=your_mongodb_database_name
+    ```dotenv
+    # MongoDB
+    MONGO_URI=your_mongodb_connection_string
+    MONGO_USER=your_mongodb_user # Optional, depending on connection string/options
+    MONGO_PASSWORD=your_mongodb_password # Optional
+    MONGO_DATABASE=your_mongodb_database_name
 
-# JWT Secrets
-ACCESS_TOKEN_SECRET=your_strong_access_token_secret
-REFRESH_TOKEN_SECRET=your_strong_refresh_token_secret
+    # JWT Secrets
+    ACCESS_TOKEN_SECRET=your_strong_access_token_secret
+    REFRESH_TOKEN_SECRET=your_strong_refresh_token_secret
 
-# Cloudinary
-CLOUDINARY_NAME=your_cloudinary_cloud_name
-CLOUDINARY_KEY=your_cloudinary_api_key
-CLOUDINARY_SECRET=your_cloudinary_api_secret
+    # Cloudinary
+    CLOUDINARY_NAME=your_cloudinary_cloud_name
+    CLOUDINARY_KEY=your_cloudinary_api_key
+    CLOUDINARY_SECRET=your_cloudinary_api_secret
 
-# Server
-PORT=4001 # Default port for local development
+    # Server
+    PORT=4001 # Default port for local development
 
-# Deployment (Set to true if deploying to Vercel)
-IS_VERCEL=false
-```
+    # Deployment (Set to true if deploying to Vercel)
+    IS_VERCEL=false
+    ```
 
 ## Running the Application
 
