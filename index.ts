@@ -16,15 +16,15 @@ const allowedOrigins = config.isVercel
 
 const app = new Elysia()
   .onRequest(async ({ set, request }) => {
-    if (config.isVercel && mongoose.connection.readyState !== 1) {
+    if (mongoose.connection.readyState !== 1) {
       try {
         await mongoose.connect(
           config.mongoUri,
           config.mongoOptions as mongoose.ConnectOptions,
         );
-        console.log("Connected to MongoDB (Vercel)");
+        console.log("Connected to MongoDB");
       } catch (error) {
-        console.error("MongoDB Connection Error (Vercel):", error);
+        console.error("MongoDB Connection Error:", error);
         set.status = 500;
         return "Internal Server Error: DB Connection Failed";
       }
