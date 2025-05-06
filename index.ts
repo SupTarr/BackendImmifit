@@ -74,7 +74,7 @@ const app = new Elysia()
   })
   .get("/health", () => ({ status: "SUCCESS" }));
 
-if (!config.isVercel && typeof process !== 'undefined' && process.version) {
+if (!config.isVercel && typeof process !== "undefined" && process.version) {
   const port = process.env.PORT || 4001;
   try {
     app.listen(port, () => {
