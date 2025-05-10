@@ -13,7 +13,7 @@ const config = {
     retryWrites: true,
     w: "majority",
   } as ConnectOptions,
-  isVercel: process.env.IS_VERCEL,
+  isVercel: process.env.IS_VERCEL === "true",
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET as string,
 };
