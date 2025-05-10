@@ -40,7 +40,7 @@ const app = new Elysia()
         return allowedOrigins.includes(origin);
       },
       credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "application/json"],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     }),
   )
