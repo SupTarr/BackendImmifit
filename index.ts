@@ -47,6 +47,10 @@ const app = new Elysia()
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     }),
   )
+  .options("/*", ({ set }) => {
+    set.status = 200;
+    return "";
+  })
   .use(swagger())
   .use(cookie())
   .use(authPlugin)
