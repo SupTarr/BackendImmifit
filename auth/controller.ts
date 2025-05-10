@@ -33,22 +33,21 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         .exec();
 
       if (!foundUser || !foundUser.password) {
-        set.status = 401;
+        set.status = 400;
         return {
-          status: "INVALID_CREDENTIALS",
-          message: "Invalid email or password.",
+          status: "INVALID_REQUEST",
+          message: "Invalid email or password",
         };
       }
 
       const match = await bcrypt.compare(password, foundUser.password);
 
       if (match) {
-        const roles = Object.values(foundUser.roles || {}).filter(
-          (role): role is number => typeof role === "number",
-        );
-
         const accessToken = jwt.sign(
-          { userId: foundUser.userId, roles: roles } as AccessTokenPayload,
+          {
+            userId: foundUser.userId,
+            roles: foundUser.roles,
+          } as AccessTokenPayload,
           config.accessTokenSecret,
           { expiresIn: "15m" },
         );
@@ -72,12 +71,12 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         });
 
         set.status = 200;
-        return { status: "SUCCESS", accessToken };
+        return { status: "SUCCESS", body: { accessToken } };
       } else {
-        set.status = 401;
+        set.status = 400;
         return {
-          status: "INVALID_CREDENTIALS",
-          message: "Invalid email or password.",
+          status: "INVALID_REQUEST",
+          message: "Invalid email or password",
         };
       }
     },
@@ -91,7 +90,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       const duplicateEmail = await User.findOne({ email: email }).exec();
       if (duplicateEmail) {
         set.status = 409;
-        return { status: "CONFLICT", message: "Email already exists." };
+        return { status: "INVALID_REQUEST", message: "Email already exists" };
       }
 
       try {
@@ -102,26 +101,17 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
           password: hashedPwd,
         } as Partial<IUser>);
 
-        set.status = 201;
+        set.status = 200;
         return {
           status: "SUCCESS",
-          message: `New user ${email} created!`,
-          userId: newUser.userId,
+          body: { userId: newUser.userId },
         };
       } catch (error: any) {
         console.error("Error creating user:", error);
-        if (error instanceof mongoose.Error.ValidationError) {
-          set.status = 400;
-          return {
-            status: "VALIDATION_ERROR",
-            message: "User data validation failed.",
-            details: error.message,
-          };
-        }
         set.status = 500;
         return {
           status: "INTERNAL_SERVER_ERROR",
-          message: "Failed to register user.",
+          message: "Failed to register user",
         };
       }
     },
@@ -131,10 +121,10 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
   .post("/refresh", async ({ cookie, set }) => {
     const refreshToken = cookie.jwt;
     if (!refreshToken || typeof refreshToken !== "string") {
-      set.status = 401;
+      set.status = 400;
       return {
-        status: "UNAUTHORIZED",
-        message: "Refresh token missing or invalid.",
+        status: "INVALID_REQUEST",
+        message: "Refresh token missing or invalid",
       };
     }
 
@@ -145,8 +135,8 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
 
       if (!foundUser) {
         cookie.jwt.remove();
-        set.status = 403;
-        return { status: "FORBIDDEN", message: "Invalid refresh token." };
+        set.status = 400;
+        return { status: "INVALID_REQUEST", message: "Invalid refresh token" };
       }
 
       const decoded = jwt.verify(
@@ -156,8 +146,8 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
 
       if (foundUser.userId !== decoded.userId) {
         cookie.jwt.remove();
-        set.status = 403;
-        return { status: "FORBIDDEN", message: "Refresh token mismatch." };
+        set.status = 400;
+        return { status: "INVALID_REQUEST", message: "Refresh token mismatch" };
       }
 
       const roles = Object.values(foundUser.roles || {}).filter(
@@ -170,21 +160,22 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       );
 
       set.status = 200;
-      return { status: "SUCCESS", accessToken };
+      return { status: "SUCCESS", body: { accessToken } };
     } catch (error) {
       console.error("Error handling refresh token:", error);
       cookie.jwt.remove();
       if (error instanceof jwt.JsonWebTokenError) {
-        set.status = 403;
+        set.status = 400;
         return {
-          status: "FORBIDDEN",
-          message: "Invalid or expired refresh token.",
+          status: "INVALID_REQUEST",
+          message: "Invalid or expired refresh token",
         };
       }
+
       set.status = 500;
       return {
         status: "INTERNAL_SERVER_ERROR",
-        message: "Failed to refresh token.",
+        message: "Failed to refresh token",
       };
     }
   })
@@ -192,8 +183,8 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
   .get("/logout", async ({ cookie, set }) => {
     const refreshToken = cookie.jwt;
     if (!refreshToken || typeof refreshToken !== "string") {
-      set.status = 204;
-      return;
+      set.status = 200;
+      return { status: "SUCCESS" };
     }
 
     try {
@@ -203,8 +194,8 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       );
 
       cookie.jwt.remove();
-      set.status = 204;
-      return;
+      set.status = 200;
+      return { status: "SUCCESS" };
     } catch (error) {
       console.error("Logout error:", error);
       cookie.jwt.remove();

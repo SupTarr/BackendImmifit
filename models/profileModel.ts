@@ -4,17 +4,16 @@ import { IUser } from "./userModel.js";
 export enum Gender {
   Man = 1000,
   Woman = 2000,
-  Other = 3000,
 }
 
 export interface IProfile extends Document {
   profileId: string;
   userId: IUser["userId"];
   about?: string;
-  gender?: Gender;
-  age?: number;
-  height?: number;
-  weight?: number;
+  gender: Gender;
+  age: number;
+  height: number;
+  weight: number;
   bmi?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -42,19 +41,23 @@ const profileSchema: Schema<IProfile> = new Schema(
     },
     gender: {
       type: Number,
+      required: true,
       enum: Object.values(Gender).filter((v) => typeof v === "number"),
     },
     age: {
       type: Number,
+      required: true,
       min: 0,
       max: 150,
     },
     height: {
       type: Number,
+      required: true,
       min: 0,
     },
     weight: {
       type: Number,
+      required: true,
       min: 0,
     },
     bmi: {
