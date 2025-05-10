@@ -38,8 +38,19 @@ const app = new Elysia()
   .use(
     cors({
       origin: (request): boolean => {
-        const origin = request.headers.get("origin");
+        let origin: string | null | undefined;
+        if (request.headers instanceof Headers) {
+          origin = request.headers.get("origin");
+        } else if (typeof request.headers === 'object' && request.headers !== null) {
+          const headers = request.headers as Record<string, string | string[] | undefined>;
+          origin = typeof headers.origin === 'string' ? headers.origin : undefined;
+          if (!origin && typeof headers['origin'] === 'string') {
+            origin = headers['origin'];
+          }
+        }
+
         if (!origin) return false;
+        console.log(`Origin: ${origin}, Allowed: ${allowedOrigins.includes(origin)}`);
         return allowedOrigins.includes(origin);
       },
       credentials: true,
