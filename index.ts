@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { cookie } from "@elysiajs/cookie";
+import {swagger} from '@elysiajs/swagger'
 import mongoose from "mongoose";
 import config from "./configs/config.js";
 import dotenv from "dotenv";
@@ -30,6 +31,7 @@ const app = new Elysia()
       }
     }
   })
+  .use(swagger())
   .use(
     cors({
       origin: (request): boolean => {
