@@ -52,7 +52,6 @@ export const userPlugin = new Elysia({ prefix: "/users" })
       body: ProfileBodyType;
       set: any;
     }) => {
-      // Explicitly type body
       const { userId } = params;
       const profileData = body;
       if (Object.keys(profileData).length === 0) {

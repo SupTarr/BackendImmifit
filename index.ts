@@ -35,6 +35,18 @@ const app = new Elysia()
       }
     }
   })
+  .use(
+    cors({
+      origin: (request): boolean => {
+        const origin = request.headers.get("origin");
+        if (!origin) return false;
+        return allowedOrigins.includes(origin);
+      },
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization", "application/json"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    }),
+  )
   .use(swagger())
   .use(cookie())
   .use(authPlugin)

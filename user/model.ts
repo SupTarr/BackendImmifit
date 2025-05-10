@@ -3,7 +3,6 @@ import { t } from "elysia";
 export enum Gender {
   Man = 1000,
   Woman = 2000,
-  Other = 3000,
 }
 
 export const UserIdParamsSchema = t.Object({
@@ -15,7 +14,7 @@ export const UserIdParamsSchema = t.Object({
 
 export const ProfileBodySchema = t.Object({
   about: t.Optional(t.String()),
-  gender: t.Optional(t.Enum(Gender)),
+  gender: t.Enum(Gender),
   age: t.Optional(t.Number({ minimum: 0 })),
   height: t.Optional(t.Number({ minimum: 0 })),
   weight: t.Optional(t.Number({ minimum: 0 })),
