@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "vercel-build": "bun run build",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "author": "",
