@@ -2,7 +2,7 @@
   "name": "backend-immifit",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/api/index.js",
   "type": "module",
   "scripts": {
     "build:vercel": "bun run build && bun scripts/transform-paths.ts",
