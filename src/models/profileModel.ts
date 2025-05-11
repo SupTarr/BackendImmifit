@@ -2,19 +2,22 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 import { IUser } from "./userModel.js";
 
 export enum Gender {
-  Man = 1000,
-  Woman = 2000,
+  male = 'male',
+  female = 'female',
+  other = 'other',
 }
 
 export interface IProfile extends Document {
   profileId: string;
   userId: IUser["userId"];
-  about?: string;
-  gender: Gender;
-  age: number;
-  height: number;
-  weight: number;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: Date;
+  gender?: Gender;
+  height?: number;
+  weight?: number;
   bmi?: number;
+  goal?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -34,35 +37,36 @@ const profileSchema: Schema<IProfile> = new Schema(
       index: true,
       ref: "User",
     },
-    about: {
+    firstName: {
       type: String,
       trim: true,
-      maxlength: 500,
+    },
+    lastName: {
+      type: String,
+      trim: true,
+    },
+    dateOfBirth: {
+      type: Date,
     },
     gender: {
-      type: Number,
-      required: true,
-      enum: Object.values(Gender).filter((v) => typeof v === "number"),
-    },
-    age: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 150,
+      type: String,
+      enum: Object.values(Gender),
     },
     height: {
       type: Number,
-      required: true,
       min: 0,
     },
     weight: {
       type: Number,
-      required: true,
       min: 0,
     },
     bmi: {
       type: Number,
       min: 0,
+    },
+    goal: {
+      type: String,
+      trim: true,
     },
   },
   {
