@@ -1,14 +1,16 @@
 {
   "version": 2,
-  "rewrites": [
+  "framework": null,
+  "installCommand": "bun install",
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index"
+      "src": "/((?!api/).*)",
+      "dest": "/api/index"
     }
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Credentials",
