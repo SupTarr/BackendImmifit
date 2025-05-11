@@ -1,4 +1,4 @@
-import { Elysia, t } from "elysia";
+import { Elysia, Context } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { cookie } from "@elysiajs/cookie";
 import { swagger } from "@elysiajs/swagger";
@@ -10,11 +10,6 @@ import { userPlugin } from "../user/controller.js";
 import { activitiesPlugin } from "../activities/controller.js";
 
 dotenv.config();
-
-const allowedOrigins = config.isVercel
-  ? ["https://immifit.suptarr.vercel.app"]
-  : ["http://localhost:3000", "http://localhost:4001"];
-
 const app = new Elysia()
   .onRequest(async ({ set, request }) => {
     if (request.method === "OPTIONS") {
@@ -37,22 +32,7 @@ const app = new Elysia()
   })
   .use(
     cors({
-      origin: (request): boolean => {
-        let origin: string | null | undefined;
-        if (request.headers instanceof Headers) {
-          origin = request.headers.get("origin");
-        } else if (typeof request.headers === 'object' && request.headers !== null) {
-          const headers = request.headers as Record<string, string | string[] | undefined>;
-          origin = typeof headers.origin === 'string' ? headers.origin : undefined;
-          if (!origin && typeof headers['origin'] === 'string') {
-            origin = headers['origin'];
-          }
-        }
-
-        if (!origin) return false;
-        console.log(`Origin: ${origin}, Allowed: ${allowedOrigins.includes(origin)}`);
-        return allowedOrigins.includes(origin);
-      },
+      origin: "https://immifit.suptarr.vercel.app",
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization", "application/json"],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
