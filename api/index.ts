@@ -1,9 +1,3 @@
 import { app } from "../src/index.js";
 
-export const config = {
-  runtime: "edge",
-};
-
-export default async function handler(request: Request) {
-  return app.fetch(request);
-}
+export default app.fetch;
