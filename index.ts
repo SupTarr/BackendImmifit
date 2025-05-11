@@ -3,11 +3,11 @@ import { cors } from "@elysiajs/cors";
 import { cookie } from "@elysiajs/cookie";
 import { swagger } from "@elysiajs/swagger";
 import mongoose from "mongoose";
-import config from "../configs/config.js";
+import config from "./configs/config.js";
 import dotenv from "dotenv";
-import { authPlugin } from "../auth/controller.js";
-import { userPlugin } from "../user/controller.js";
-import { activitiesPlugin } from "../activities/controller.js";
+import { authPlugin } from "./auth/controller.js";
+import { userPlugin } from "./user/controller.js";
+import { activitiesPlugin } from "./activities/controller.js";
 
 dotenv.config();
 const app = new Elysia()

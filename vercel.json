@@ -1,20 +1,21 @@
 {
+  "version": 2,
   "builds": [
     {
-      "src": "/dist/api/index.js",
+      "src": "dist/index.js",
       "use": "@vercel/node",
       "config": { "includeFiles": ["dist/**"] }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "src": "/(.*)",
+      "dest": "dist/index.js"
     }
   ],
   "headers": [
     {
-      "source": "/api",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Credentials",
