@@ -26,18 +26,6 @@ const app = new Elysia()
       }
     }
   })
-  .use(
-    cors({
-      origin: "https://immifit.suptarr.vercel.app",
-      credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    }),
-  )
-  .options("/*", ({ set }) => {
-    set.status = 200;
-    return "";
-  })
   .use(swagger())
   .use(cookie())
   .use(authPlugin)
@@ -69,13 +57,15 @@ const app = new Elysia()
       message: "message" in error ? error.message : "An unknown error occurred",
     };
   })
-  .onAfterHandle(({ request, set }) => {
-    if (request.method !== "OPTIONS") return;
-
-    set.headers["Access-Control-Allow-Headers"] =
-      request.headers.get("Access-Control-Request-Headers") ?? "";
-  })
-  .get("/health", () => ({ status: "SUCCESS" }));
+  .use(
+    cors({
+      origin: "https://immifit.suptarr.vercel.app",
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    }),
+  )
+  .get("/", () => ({ status: "SUCCESS" }));
 
 if (!config.isVercel && typeof process !== "undefined" && process.version) {
   const port = process.env.PORT || 4001;
