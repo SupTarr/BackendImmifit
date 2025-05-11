@@ -12,10 +12,6 @@ import { activitiesPlugin } from "../activities/controller.js";
 dotenv.config();
 const app = new Elysia()
   .onRequest(async ({ set, request }) => {
-    if (request.method === "OPTIONS") {
-      return;
-    }
-
     if (mongoose.connection.readyState !== 1) {
       try {
         await mongoose.connect(
@@ -34,7 +30,7 @@ const app = new Elysia()
     cors({
       origin: "https://immifit.suptarr.vercel.app",
       credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization", "application/json"],
+      allowedHeaders: ["Content-Type", "Authorization"],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     }),
   )
@@ -72,6 +68,12 @@ const app = new Elysia()
       status: "UNKNOWN_ERROR",
       message: "message" in error ? error.message : "An unknown error occurred",
     };
+  })
+  .onAfterHandle(({ request, set }) => {
+    if (request.method !== "OPTIONS") return;
+
+    set.headers["Access-Control-Allow-Headers"] =
+      request.headers.get("Access-Control-Request-Headers") ?? "";
   })
   .get("/health", () => ({ status: "SUCCESS" }));
 
