@@ -2,7 +2,7 @@
   "name": "backend-immifit",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/api/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
     "build": "tsc",
