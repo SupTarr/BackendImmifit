@@ -1,15 +1,8 @@
 {
-  "version": 2,
-  "functions": {
-    "api/index.ts": {
-      "runtime": "edge"
-    }
-  },
-  "routes": [
-    {
-      "src": "/((?!api/).*)",
-      "dest": "/api/index"
-    }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "bun run build:vercel",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
   ],
   "headers": [
     {
