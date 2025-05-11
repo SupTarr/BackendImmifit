@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "dev": "bun run --watch api/index.ts",
+    "build": "bun build ./src/app.ts --outdir=./dist-server --target=bun && tsc --project tsconfig.api.json && tsc-alias -p tsconfig.api.json",
+  "vercel-build": "echo 'Vercel will use bun install and then run the Edge function from api/index.ts. Custom build steps can be added if needed.'",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "author": "",
