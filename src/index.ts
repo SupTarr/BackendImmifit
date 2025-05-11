@@ -70,4 +70,4 @@ if (!config.isVercel && typeof process !== "undefined" && process.version) {
   }
 }
 
-export { app };
+export default app;
