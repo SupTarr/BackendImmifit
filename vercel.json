@@ -19,7 +19,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://immifit.suptarr.vercel.app"
+          "value": "*"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -44,7 +44,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://immifit.suptarr.vercel.app"
+          "value": "*"
         },
         {
           "key": "Access-Control-Allow-Methods",
