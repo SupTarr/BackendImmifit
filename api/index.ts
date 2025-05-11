@@ -11,6 +11,14 @@ import { activitiesPlugin } from "../activities/controller.js";
 
 dotenv.config();
 const app = new Elysia()
+  .use(
+    cors({
+      origin: "https://immifit.suptarr.vercel.app",
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    }),
+  )
   .onRequest(async ({ set, request }) => {
     if (mongoose.connection.readyState !== 1) {
       try {
@@ -57,14 +65,6 @@ const app = new Elysia()
       message: "message" in error ? error.message : "An unknown error occurred",
     };
   })
-  .use(
-    cors({
-      origin: "https://immifit.suptarr.vercel.app",
-      credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    }),
-  )
   .get("/", () => ({ status: "SUCCESS" }));
 
 if (!config.isVercel && typeof process !== "undefined" && process.version) {
