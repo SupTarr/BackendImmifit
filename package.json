@@ -5,9 +5,8 @@
   "main": "dist/api/index.js",
   "type": "module",
   "scripts": {
-    "build:vercel": "bun run build && bun scripts/transform-paths.ts",
     "build": "tsc",
-    "vercel-build": "echo 'Vercel will use bun install and then run the Edge function from api/index.ts.'",
+    "vercel-build": "bun run build",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "author": "",
