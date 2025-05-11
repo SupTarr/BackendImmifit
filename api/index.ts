@@ -3,22 +3,14 @@ import { cors } from "@elysiajs/cors";
 import { cookie } from "@elysiajs/cookie";
 import { swagger } from "@elysiajs/swagger";
 import mongoose from "mongoose";
-import config from "./configs/config.js";
+import config from "../configs/config.js";
 import dotenv from "dotenv";
-import { authPlugin } from "./auth/controller.js";
-import { userPlugin } from "./user/controller.js";
-import { activitiesPlugin } from "./activities/controller.js";
+import { authPlugin } from "../auth/controller.js";
+import { userPlugin } from "../user/controller.js";
+import { activitiesPlugin } from "../activities/controller.js";
 
 dotenv.config();
 const app = new Elysia()
-  .use(
-    cors({
-      origin: "https://immifit.suptarr.vercel.app",
-      credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    }),
-  )
   .onRequest(async ({ set, request }) => {
     if (mongoose.connection.readyState !== 1) {
       try {
