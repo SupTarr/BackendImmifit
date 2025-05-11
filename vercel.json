@@ -1,8 +1,16 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bun run build:vercel",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api" }
+  "buildCommand": "tsc",
+  "builds": [
+    {
+      "src": "dist/api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/api/index.js"
+    }
   ],
   "headers": [
     {
