@@ -153,6 +153,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       const roles = Object.values(foundUser.roles || {}).filter(
         (role): role is number => typeof role === "number",
       );
+      
       const accessToken = jwt.sign(
         { userId: foundUser.userId, roles: roles } as AccessTokenPayload,
         config.accessTokenSecret,

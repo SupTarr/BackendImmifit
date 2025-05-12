@@ -8,7 +8,7 @@ type ProfileBodyType = typeof ProfileBodySchema.static;
 
 export const userPlugin = new Elysia({ prefix: "/users" })
   .get(
-    "/:userId",
+    "/profile",
     async ({ params, set }) => {
       const { userId } = params;
       try {
@@ -41,8 +41,8 @@ export const userPlugin = new Elysia({ prefix: "/users" })
     },
   )
 
-  .put(
-    "/:userId/profile",
+  .post(
+    "/profile",
     async ({
       params,
       body,

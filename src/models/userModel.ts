@@ -9,6 +9,7 @@ export interface IUser extends Document {
   userId: string;
   roles: Role[];
   email: string;
+  username: string;
   password?: string;
   refreshToken?: string;
   createdAt?: Date;
@@ -34,6 +35,11 @@ const userSchema: Schema<IUser> = new Schema(
       trim: true,
       match: [/.+\@.+\..+/, "Please fill a valid email address"],
       lowercase: true,
+    },
+    username: {
+      type: String,
+      required: true,
+      trim: true,
     },
     password: {
       type: String,
