@@ -5,6 +5,7 @@
   "main": "dist/api/index.js",
   "type": "module",
   "scripts": {
+    "dev": "bun run --watch src/index.ts",
     "build": "tsc",
     "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
