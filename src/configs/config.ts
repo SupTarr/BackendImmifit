@@ -3,18 +3,35 @@ import { ConnectOptions } from "mongoose";
 
 dotenv.config();
 
-const config = {
+interface BaseConfig {
+  port: number | string;
+  accessTokenSecret: string;
+  refreshTokenSecret: string;
+}
+
+interface MongoDBConfig {
+  uri: string;
+  options?: ConnectOptions;
+}
+
+interface Config extends BaseConfig {
+  mongoDb: MongoDBConfig;
+}
+
+const config: Config = {
   port: process.env.PORT || 3000,
-  mongoUri: process.env.MONGO_URI as string,
-  mongoOptions: {
-    user: process.env.MONGO_USER,
-    pass: process.env.MONGO_PASSWORD,
-    dbName: process.env.MONGO_DATABASE,
-    retryWrites: true,
-    w: "majority",
-  } as ConnectOptions,
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET as string,
+  mongoDb: {
+    uri: process.env.MONGO_URI as string,
+    options: {
+      user: process.env.MONGO_USER,
+      pass: process.env.MONGO_PASSWORD,
+      dbName: process.env.MONGO_DATABASE,
+      retryWrites: true,
+      w: "majority",
+    } as ConnectOptions,
+  }
 };
 
 export default config;
