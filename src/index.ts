@@ -26,6 +26,14 @@ const app = new Elysia()
       }
     }
   })
+  .use(
+    cors({
+      origin: "https://immifit.suptarr.vercel.app",
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    }),
+  )
   .use(swagger())
   .use(cookie())
   .use(authPlugin)
@@ -57,17 +65,12 @@ const app = new Elysia()
       message: "message" in error ? error.message : "An unknown error occurred",
     };
   })
-  .get("/", () => ({ status: "SUCCESS" }));
+  .get("/", () => ({ status: "SUCCESS" }))
+  .listen({
+    hostname: "0.0.0.0",
+    port: config.port,
+  });
 
-if (!config.isVercel && typeof process !== "undefined" && process.version) {
-  const port = process.env.PORT || 4001;
-  try {
-    app.listen(port, () => {
-      console.log(`🦊 Elysia is running locally at http://localhost:${port}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-  }
-}
-
-export default app;
+console.log(
+  `🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`,
+);
