@@ -1,5 +1,5 @@
 import { Elysia, NotFoundError, Static } from "elysia";
-import { cloudinary } from "../configs/cloudinary.config.js";
+import { cloudinary } from "../configs/cloudinary.js";
 import { v4 as uuidv4 } from "uuid";
 import mongoose from "mongoose";
 import User from "../models/userModel.js";

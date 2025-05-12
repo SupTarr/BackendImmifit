@@ -7,6 +7,7 @@ export const LoginBodySchema = t.Object({
 
 export const RegisterBodySchema = t.Object({
   email: t.String({ format: "email" }),
+  username: t.String({ minLength: 3 }),
   password: t.String({ minLength: 8 }),
 });
 
