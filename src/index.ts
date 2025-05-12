@@ -15,8 +15,8 @@ const app = new Elysia()
     if (mongoose.connection.readyState !== 1) {
       try {
         await mongoose.connect(
-          config.mongoDb.uri,
-          config.mongoDb.options as mongoose.ConnectOptions,
+          config.mongo.uri,
+          config.mongo.options as mongoose.ConnectOptions,
         );
         console.log("Connected to MongoDB");
       } catch (error) {

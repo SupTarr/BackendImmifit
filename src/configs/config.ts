@@ -15,14 +15,14 @@ interface MongoDBConfig {
 }
 
 interface Config extends BaseConfig {
-  mongoDb: MongoDBConfig;
+  mongo: MongoDBConfig;
 }
 
 const config: Config = {
   port: process.env.PORT || 3000,
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET as string,
-  mongoDb: {
+  mongo: {
     uri: process.env.MONGO_URI as string,
     options: {
       user: process.env.MONGO_USER,
