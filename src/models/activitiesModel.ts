@@ -9,12 +9,11 @@ export interface IImage {
 
 export interface IActivities extends Document {
   activityId: string;
-  user_id: string;
+  userId: string;
   type: "Running" | "Cycling" | "Swimming" | "Weight training" | "Walking";
   title: string;
-  date: Date;
-  duration: number;
-  calories: number;
+  startTime: Date;
+  endTime: Date;
   description?: string;
   img: IImage;
   createdAt?: Date;
@@ -29,9 +28,10 @@ const activitiesSchema: Schema<IActivities> = new Schema(
       unique: true,
       index: true,
     },
-    user_id: {
+    userId: {
       type: String,
       required: true,
+      unique: true,
       index: true,
     },
     type: {
@@ -43,19 +43,13 @@ const activitiesSchema: Schema<IActivities> = new Schema(
       type: String,
       required: true,
     },
-    date: {
+    startTime: {
       type: Date,
       required: true,
     },
-    duration: {
-      type: Number,
+    endTime: {
+      type: Date,
       required: true,
-      min: 0,
-    },
-    calories: {
-      type: Number,
-      required: true,
-      min: 0,
     },
     description: String,
     img: {
