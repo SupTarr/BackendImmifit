@@ -31,7 +31,7 @@ const config: Config = {
       retryWrites: true,
       w: "majority",
     } as ConnectOptions,
-  }
+  },
 };
 
 export default config;

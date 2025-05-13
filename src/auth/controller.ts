@@ -1,31 +1,27 @@
 import { Elysia, Static } from "elysia";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import config from "../configs/config.js";
-import { generateAndSetTokens } from "./jwt.js";
+import { generateAndSetTokens } from "./token.js";
 import User, { IUser } from "../models/userModel.js";
 import {
   LoginBodySchema,
   RegisterBodySchema,
   RefreshTokenPayload,
+  AuthContext,
 } from "./model.js";
 
 type LoginBodyType = Static<typeof LoginBodySchema>;
-type RegisterBodyType = Static<typeof RegisterBodySchema>;
 
 export const authPlugin = new Elysia({ prefix: "/auth" })
   .post(
     "/login",
     async ({
       body,
+      access,
+      refresh,
       cookie,
       set,
-    }: {
-      body: LoginBodyType;
-      cookie: any;
-      set: any;
-    }) => {
+    }: { body: LoginBodyType } & AuthContext) => {
       const { email, password } = body;
       const foundUser: IUser | null = await User.findOne({ email: email })
         .select("+password +refreshToken")
@@ -48,7 +44,12 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-      const accessToken = await generateAndSetTokens(foundUser, cookie);
+      const accessToken = await generateAndSetTokens(
+        access,
+        refresh,
+        cookie,
+        foundUser,
+      );
       set.status = 200;
       return { status: "SUCCESS", body: { accessToken } };
     },
@@ -57,7 +58,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
 
   .post(
     "/register",
-    async ({ body, set }: { body: RegisterBodyType; set: any }) => {
+    async ({ body, set }) => {
       const { email, username, password } = body;
       const duplicateEmail = await User.findOne({ email: email }).exec();
       if (duplicateEmail) {
@@ -66,9 +67,10 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       }
 
       try {
+        const userId = "USER:" + uuidv4();
         const hashedPwd = await bcrypt.hash(password, 10);
         const newUser = await User.create({
-          userId: uuidv4(),
+          userId: userId,
           email: email,
           username: username,
           password: hashedPwd,
@@ -91,8 +93,8 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
     { body: RegisterBodySchema },
   )
 
-  .post("/refresh", async ({ cookie, set }) => {
-    const refreshToken = cookie.jwt;
+  .post("/refresh", async ({ access, refresh, cookie, set }: AuthContext) => {
+    const refreshToken = cookie.jwt.value;
     if (!refreshToken || typeof refreshToken !== "string") {
       set.status = 400;
       return {
@@ -109,34 +111,36 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       if (!foundUser) {
         cookie.jwt.remove();
         set.status = 400;
-        return { status: "INVALID_REQUEST", message: "Invalid refresh token" };
+        return {
+          status: "INVALID_REQUEST",
+          message: "Invalid refresh token",
+        };
       }
 
-      const decoded = jwt.verify(
+      const decoded = (await refresh.verify(
         refreshToken,
-        config.refreshTokenSecret,
-      ) as RefreshTokenPayload;
+      )) as RefreshTokenPayload;
 
       if (foundUser.userId !== decoded.userId) {
         cookie.jwt.remove();
         set.status = 400;
-        return { status: "INVALID_REQUEST", message: "Refresh token mismatch" };
+        return {
+          status: "INVALID_REQUEST",
+          message: "Refresh token mismatch",
+        };
       }
 
-      const accessToken = await generateAndSetTokens(foundUser, cookie);
+      const accessToken = await generateAndSetTokens(
+        access,
+        refresh,
+        cookie,
+        foundUser,
+      );
       set.status = 200;
       return { status: "SUCCESS", body: { accessToken } };
     } catch (error) {
       console.error("Error handling refresh token:", error);
       cookie.jwt.remove();
-      if (error instanceof jwt.JsonWebTokenError) {
-        set.status = 400;
-        return {
-          status: "INVALID_REQUEST",
-          message: "Invalid or expired refresh token",
-        };
-      }
-
       set.status = 500;
       return {
         status: "INTERNAL_SERVER_ERROR",
@@ -145,19 +149,15 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
     }
   })
 
-  .get("/logout", async ({ cookie, set }) => {
-    const refreshToken = cookie.jwt;
+  .post("/logout", async ({ cookie, set }) => {
+    const refreshToken = cookie.jwt.value;
     if (!refreshToken || typeof refreshToken !== "string") {
       set.status = 200;
       return { status: "SUCCESS" };
     }
 
     try {
-      await User.updateOne(
-        { refreshToken: refreshToken },
-        { $unset: { refreshToken: 1 } },
-      );
-
+      await User.updateOne({ refreshToken: "" });
       cookie.jwt.remove();
       set.status = 200;
       return { status: "SUCCESS" };
