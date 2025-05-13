@@ -1,14 +1,13 @@
-import { Elysia, Context } from "elysia";
+import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { cookie } from "@elysiajs/cookie";
 import { swagger } from "@elysiajs/swagger";
 import { logger } from "@bogeychan/elysia-logger";
-import { jwt } from "@elysiajs/jwt";
 import mongoose from "mongoose";
 import config from "./configs/config.js";
 import dotenv from "dotenv";
 import { authPlugin } from "./auth/controller.js";
-import { userPlugin } from "./user/controller.js";
+import { userPlugin } from "./users/controller.js";
 import { activitiesPlugin } from "./activities/controller.js";
 
 dotenv.config();
@@ -34,20 +33,6 @@ const app = new Elysia()
   .use(swagger())
   .use(cookie())
   .use(logger())
-  .use(
-    jwt({
-      name: "access",
-      secret: config.accessTokenSecret,
-      exp: "15m",
-    }),
-  )
-  .use(
-    jwt({
-      name: "refresh",
-      secret: config.refreshTokenSecret,
-      exp: "1d",
-    }),
-  )
   .use(authPlugin)
   .use(userPlugin)
   .use(activitiesPlugin)

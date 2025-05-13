@@ -1,27 +1,20 @@
 import { Elysia, Static } from "elysia";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import { generateAndSetTokens } from "./token.js";
 import User, { IUser } from "../models/userModel.js";
 import {
   LoginBodySchema,
   RegisterBodySchema,
   RefreshTokenPayload,
-  AuthContext,
 } from "./model.js";
-
-type LoginBodyType = Static<typeof LoginBodySchema>;
+import { jwtAccessSetup, jwtRefreshSetup } from "../jwt/utils.js";
 
 export const authPlugin = new Elysia({ prefix: "/auth" })
+  .use(jwtAccessSetup)
+  .use(jwtRefreshSetup)
   .post(
     "/login",
-    async ({
-      body,
-      access,
-      refresh,
-      cookie,
-      set,
-    }: { body: LoginBodyType } & AuthContext) => {
+    async ({ body, jwtAccess, jwtRefresh, cookie, set }) => {
       const { email, password } = body;
       const foundUser: IUser | null = await User.findOne({ email: email })
         .select("+password +refreshToken")
@@ -44,12 +37,27 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-      const accessToken = await generateAndSetTokens(
-        access,
-        refresh,
-        cookie,
-        foundUser,
-      );
+      const accessToken = await jwtAccess.sign({
+        userId: foundUser.userId,
+        roles: foundUser.roles,
+      });
+
+      const newRefreshToken = await jwtRefresh.sign({
+        userId: foundUser.userId,
+      });
+
+      foundUser.refreshToken = newRefreshToken;
+      await foundUser.save();
+
+      cookie.jwt.set({
+        path: "/auth",
+        value: newRefreshToken,
+        httpOnly: true,
+        secure: true,
+        maxAge: 24 * 60 * 60,
+        sameSite: "strict",
+      });
+
       set.status = 200;
       return { status: "SUCCESS", body: { accessToken } };
     },
@@ -74,6 +82,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
           email: email,
           username: username,
           password: hashedPwd,
+          roles: [1000],
         } as Partial<IUser>);
 
         set.status = 200;
@@ -93,7 +102,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
     { body: RegisterBodySchema },
   )
 
-  .post("/refresh", async ({ access, refresh, cookie, set }: AuthContext) => {
+  .post("/refresh", async ({ jwtAccess, jwtRefresh, cookie, set }) => {
     const refreshToken = cookie.jwt.value;
     if (!refreshToken || typeof refreshToken !== "string") {
       set.status = 400;
@@ -117,9 +126,16 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-      const decoded = (await refresh.verify(
-        refreshToken,
-      )) as RefreshTokenPayload;
+      let decoded = (await jwtRefresh.verify(refreshToken)) as
+        | RefreshTokenPayload
+        | false;
+      if (!decoded) {
+        set.status = 400;
+        return {
+          status: "INVALID_REQUEST",
+          message: "Invalid refresh token",
+        };
+      }
 
       if (foundUser.userId !== decoded.userId) {
         cookie.jwt.remove();
@@ -130,12 +146,27 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-      const accessToken = await generateAndSetTokens(
-        access,
-        refresh,
-        cookie,
-        foundUser,
-      );
+      const accessToken = await jwtAccess.sign({
+        userId: foundUser.userId,
+        roles: foundUser.roles,
+      });
+
+      const newRefreshToken = await jwtRefresh.sign({
+        userId: foundUser.userId,
+      });
+
+      foundUser.refreshToken = newRefreshToken;
+      await foundUser.save();
+
+      cookie.jwt.set({
+        path: "/auth",
+        value: newRefreshToken,
+        httpOnly: true,
+        secure: true,
+        maxAge: 24 * 60 * 60,
+        sameSite: "strict",
+      });
+
       set.status = 200;
       return { status: "SUCCESS", body: { accessToken } };
     } catch (error) {
