@@ -2,6 +2,8 @@ import { Elysia, Context } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { cookie } from "@elysiajs/cookie";
 import { swagger } from "@elysiajs/swagger";
+import { logger } from "@bogeychan/elysia-logger";
+import { jwt } from "@elysiajs/jwt";
 import mongoose from "mongoose";
 import config from "./configs/config.js";
 import dotenv from "dotenv";
@@ -11,19 +13,14 @@ import { activitiesPlugin } from "./activities/controller.js";
 
 dotenv.config();
 const app = new Elysia()
-  .onRequest(async ({ set, request }) => {
+  .onRequest(async (ctx) => {
     if (mongoose.connection.readyState !== 1) {
-      try {
-        await mongoose.connect(
-          config.mongo.uri,
-          config.mongo.options as mongoose.ConnectOptions,
-        );
-        console.log("Connected to MongoDB");
-      } catch (error) {
-        console.error("MongoDB Connection Error:", error);
-        set.status = 500;
-        return "Internal Server Error: DB Connection Failed";
-      }
+      const mongoConfig = config.mongo.options as mongoose.ConnectOptions;
+      const mongoUri = config.mongo.uri;
+      mongoUri.replace("{username}", mongoConfig.user as string);
+      mongoUri.replace("{password}", mongoConfig.pass as string);
+      await mongoose.connect(mongoUri, mongoConfig);
+      console.log("Connected to MongoDB");
     }
   })
   .use(
@@ -36,33 +33,30 @@ const app = new Elysia()
   )
   .use(swagger())
   .use(cookie())
+  .use(logger())
+  .use(
+    jwt({
+      name: "access",
+      secret: config.accessTokenSecret,
+      exp: "15m",
+    }),
+  )
+  .use(
+    jwt({
+      name: "refresh",
+      secret: config.refreshTokenSecret,
+      exp: "1d",
+    }),
+  )
   .use(authPlugin)
   .use(userPlugin)
   .use(activitiesPlugin)
   .onError(({ code, error, set }) => {
     console.error(`Error caught: ${code}`, error);
-    if (code === "NOT_FOUND") {
-      set.status = 404;
-      return { status: "NOT_FOUND", message: "Route not found" };
-    } else if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        status: "VALIDATION_ERROR",
-        message: "Request validation failed",
-        details: error.message,
-      };
-    } else if (code === "INTERNAL_SERVER_ERROR") {
-      set.status = 500;
-      return {
-        status: "INTERNAL_SERVER_ERROR",
-        message: "An unexpected error occurred",
-      };
-    }
-
     set.status = 500;
     return {
-      status: "UNKNOWN_ERROR",
-      message: "message" in error ? error.message : "An unknown error occurred",
+      status: "INTERNAL_SERVER_ERROR",
+      message: "An unexpected error occurred",
     };
   })
   .get("/", () => ({ status: "SUCCESS" }))
