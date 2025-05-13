@@ -48,7 +48,6 @@ const profileSchema: Schema<IProfile> = new Schema(
       type: Number,
       required: true,
       min: 0,
-      max: 150,
     },
     height: {
       type: Number,
