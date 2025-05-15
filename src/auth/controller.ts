@@ -1,5 +1,4 @@
-import { Elysia, Static } from "elysia";
-import bcrypt from "bcrypt";
+import { Elysia } from "elysia";
 import { v4 as uuidv4 } from "uuid";
 import User, { IUser } from "../models/userModel.js";
 import {
@@ -28,7 +27,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-      const match = await bcrypt.compare(password, foundUser.password);
+      const match = await Bun.password.verify(password, foundUser.password);
       if (!match) {
         set.status = 400;
         return {
@@ -76,7 +75,11 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
 
       try {
         const userId = "USER:" + uuidv4();
-        const hashedPwd = await bcrypt.hash(password, 10);
+        const hashedPwd = await Bun.password.hash(password, {
+          algorithm: "bcrypt",
+          cost: 10,
+        });
+        
         const newUser = await User.create({
           userId: userId,
           email: email,
