@@ -1,25 +1,17 @@
 import { AccessTokenPayload } from "../auth/model.js";
 
-export const verifyJWT = async ({ jwtAccess, set, request }: any) => {
+export const verifyJWT = async ({ jwtAccess, set, request, error }: any) => {
   const authHeader = request.headers.get("authorization");
-  console.log("authHeader:", authHeader);
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    set.status = 400;
-    return {
-      status: "INVALID_REQUEST",
-      message: "Missing or invalid authorization header",
-    };
+    return error(400)
   }
 
   const token = authHeader.split(" ")[1].trim();
   const payload = (await jwtAccess.verify(token)) as AccessTokenPayload | false;
+  console.log("payload:", payload);
   if (!payload) {
-    set.status = 400;
-    return {
-      status: "INVALID_REQUEST",
-      message: "Invalid or expired token",
-    };
-  }
+    return error(400)
+  } 
 
-  return { payload };
+  return { userId: payload.userId };
 };

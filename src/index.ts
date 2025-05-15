@@ -5,12 +5,10 @@ import { swagger } from "@elysiajs/swagger";
 import { logger } from "@bogeychan/elysia-logger";
 import mongoose from "mongoose";
 import config from "./configs/config.js";
-import dotenv from "dotenv";
 import { authPlugin } from "./auth/controller.js";
 import { userPlugin } from "./users/controller.js";
 import { activitiesPlugin } from "./activities/controller.js";
 
-dotenv.config();
 const app = new Elysia()
   .onRequest(async (ctx) => {
     if (mongoose.connection.readyState !== 1) {
@@ -38,6 +36,11 @@ const app = new Elysia()
   .use(activitiesPlugin)
   .onError(({ code, error, set }) => {
     console.error(`Error caught: ${code}`, error);
+    if (code === 400) {
+      set.status = 400;
+      return { status: "INVALID_REQUEST" };
+    }
+
     set.status = 500;
     return {
       status: "INTERNAL_SERVER_ERROR",
