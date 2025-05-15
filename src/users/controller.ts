@@ -5,19 +5,16 @@ import Profile, { IProfile } from "../models/profileModel.js";
 import { ProfileBodySchema } from "./model.js";
 import { verifyJWT } from "../jwt/middleware.js";
 import { jwtAccessSetup } from "../jwt/utils.js";
-import { AccessTokenPayload } from "../auth/model.js";
-
-type ProfileBodyType = typeof ProfileBodySchema.static;
 
 export const userPlugin = new Elysia({ prefix: "/users" })
   .use(jwtAccessSetup)
   .derive(verifyJWT)
   .get(
     "/profile",
-    async ({ payload, set }: { payload: AccessTokenPayload; set: any }) => {
+    async ({ userId, set }: any) => {
       try {
         const user: IUser | null = await User.findOne({
-          userId: payload.userId,
+          userId: userId,
         })
           .select("-_id -__v -password -refreshToken -roles")
           .exec();
@@ -28,7 +25,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
         }
 
         const profile: IProfile | null = await Profile.findOne({
-          userId: payload.userId,
+          userId: userId,
         }).select("-__v");
 
         set.status = 200;
@@ -51,17 +48,9 @@ export const userPlugin = new Elysia({ prefix: "/users" })
   )
   .post(
     "/profile",
-    async ({
-      payload,
-      body,
-      set,
-    }: {
-      payload: AccessTokenPayload;
-      body: ProfileBodyType;
-      set: any;
-    }) => {
+    async ({ userId, body, set }: any) => {
       try {
-        const userExists = await User.exists({ userId: payload.userId });
+        const userExists = await User.exists({ userId: userId });
         if (!userExists) {
           set.status = 400;
           return {
@@ -77,12 +66,12 @@ export const userPlugin = new Elysia({ prefix: "/users" })
           $set: updatePayload,
           $setOnInsert: {
             profileId: "PROFILE:" + uuidv4(),
-            userId: payload.userId,
+            userId: userId,
           },
         };
 
         const updatedProfile = await Profile.findOneAndUpdate(
-          { userId: payload.userId },
+          { userId: userId },
           updateOperation,
           {
             new: true,
