@@ -28,3 +28,33 @@ export const jwtRefreshSetup = new Elysia({
     exp: "1d",
   }),
 );
+
+export const setJwtAndCookie = async ({
+  jwtAccess,
+  jwtRefresh,
+  cookie,
+  user,
+}: any) => {
+  const accessToken = await jwtAccess.sign({
+    userId: user.userId,
+    roles: user.roles,
+  });
+
+  const newRefreshToken = await jwtRefresh.sign({
+    userId: user.userId,
+  });
+
+  user.refreshToken = newRefreshToken;
+  await user.save();
+
+  cookie.jwt.set({
+    path: "/auth",
+    value: newRefreshToken,
+    httpOnly: true,
+    secure: true,
+    maxAge: 24 * 60 * 60,
+    sameSite: "strict",
+  });
+
+  return accessToken;
+};
