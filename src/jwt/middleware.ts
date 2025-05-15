@@ -12,5 +12,9 @@ export const verifyJWT = async ({ jwtAccess, request, error }: any) => {
     return error(400);
   }
 
+  if (payload.roles && !payload.roles.includes(1000)) {
+    return error(400);
+  }
+
   return { userId: payload.userId };
 };
