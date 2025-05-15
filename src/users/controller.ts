@@ -3,15 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import User, { IUser } from "../models/userModel.js";
 import Profile, { IProfile } from "../models/profileModel.js";
 import { ProfileBodySchema } from "./model.js";
-import { verifyJWT } from "../jwt/middleware.js";
-import { jwtAccessSetup } from "../jwt/utils.js";
+import { verifyJwt } from "../jwt/middleware.js";
 
 export const userPlugin = new Elysia({ prefix: "/users" })
-  .use(jwtAccessSetup)
-  .derive(verifyJWT)
+  .use(verifyJwt)
   .get(
     "/profile",
-    async ({ userId, set }: any) => {
+    async ({ userId, set }) => {
       try {
         const user: IUser | null = await User.findOne({
           userId: userId,
@@ -48,7 +46,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
   )
   .post(
     "/profile",
-    async ({ userId, body, set }: any) => {
+    async ({ userId, body, set }) => {
       try {
         const userExists = await User.exists({ userId: userId });
         if (!userExists) {
