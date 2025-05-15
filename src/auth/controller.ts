@@ -6,7 +6,11 @@ import {
   RegisterBodySchema,
   RefreshTokenPayload,
 } from "./model.js";
-import { jwtAccessSetup, jwtRefreshSetup } from "../jwt/utils.js";
+import {
+  jwtAccessSetup,
+  jwtRefreshSetup,
+  setJwtAndCookie,
+} from "../jwt/utils.js";
 
 export const authPlugin = new Elysia({ prefix: "/auth" })
   .use(jwtAccessSetup)
@@ -36,25 +40,11 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-      const accessToken = await jwtAccess.sign({
-        userId: foundUser.userId,
-        roles: foundUser.roles,
-      });
-
-      const newRefreshToken = await jwtRefresh.sign({
-        userId: foundUser.userId,
-      });
-
-      foundUser.refreshToken = newRefreshToken;
-      await foundUser.save();
-
-      cookie.jwt.set({
-        path: "/auth",
-        value: newRefreshToken,
-        httpOnly: true,
-        secure: true,
-        maxAge: 24 * 60 * 60,
-        sameSite: "strict",
+      const accessToken = await setJwtAndCookie({
+        jwtAccess,
+        jwtRefresh,
+        cookie,
+        user: foundUser,
       });
 
       set.status = 200;
@@ -149,25 +139,11 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-      const accessToken = await jwtAccess.sign({
-        userId: foundUser.userId,
-        roles: foundUser.roles,
-      });
-
-      const newRefreshToken = await jwtRefresh.sign({
-        userId: foundUser.userId,
-      });
-
-      foundUser.refreshToken = newRefreshToken;
-      await foundUser.save();
-
-      cookie.jwt.set({
-        path: "/auth",
-        value: newRefreshToken,
-        httpOnly: true,
-        secure: true,
-        maxAge: 24 * 60 * 60,
-        sameSite: "strict",
+     const accessToken = await setJwtAndCookie({
+        jwtAccess,
+        jwtRefresh,
+        cookie,
+        user: foundUser,
       });
 
       set.status = 200;
