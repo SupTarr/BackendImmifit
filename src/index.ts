@@ -36,15 +36,10 @@ const app = new Elysia()
   .use(activitiesPlugin)
   .onError(({ code, error, set }) => {
     console.error(`Error caught: ${code}`, error);
-    if (code === 400) {
-      set.status = 400;
-      return { status: "INVALID_REQUEST" };
-    }
-
     set.status = 500;
     return {
       status: "INTERNAL_SERVER_ERROR",
-      message: "An unexpected error occurred",
+      message: "An unexpected error occurred: " + error,
     };
   })
   .get("/", () => ({ status: "SUCCESS" }))
