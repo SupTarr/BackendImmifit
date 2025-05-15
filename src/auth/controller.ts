@@ -79,7 +79,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
           algorithm: "bcrypt",
           cost: 10,
         });
-        
+
         const newUser = await User.create({
           userId: userId,
           email: email,

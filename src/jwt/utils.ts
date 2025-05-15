@@ -13,7 +13,7 @@ export const jwtAccessSetup = new Elysia({
     }),
     secret: config.accessTokenSecret,
     exp: "15m",
-  })
+  }),
 );
 
 export const jwtRefreshSetup = new Elysia({
@@ -25,6 +25,6 @@ export const jwtRefreshSetup = new Elysia({
       userId: t.String(),
     }),
     secret: config.refreshTokenSecret,
-      exp: "1d",
-  })
+    exp: "1d",
+  }),
 );
