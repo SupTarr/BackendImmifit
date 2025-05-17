@@ -7,13 +7,6 @@ export const ActivityIdParamsSchema = t.Object({
   }),
 });
 
-export const UserIdParamsSchema = t.Object({
-  userId: t.String({
-    pattern: "^[0-9a-fA-F]{24}$",
-    error: "Invalid User ID format.",
-  }),
-});
-
 export const ActivityTypeEnum = t.Enum(
   {
     Running: "Running",
