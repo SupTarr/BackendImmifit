@@ -1,18 +1,14 @@
-import { Elysia, NotFoundError, Static } from "elysia";
+import { Elysia, NotFoundError } from "elysia";
 import { cloudinary } from "../configs/cloudinary.js";
-import { v4 as uuidv4 } from "uuid";
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import Activities, { IActivities, IImage } from "../models/activitiesModel.js";
 import {
   CreateActivityBodySchema,
   ActivityIdParamsSchema,
-  UserIdParamsSchema,
   EditActivityBodySchema,
 } from "./model.js";
-
-type CreateActivityBodyType = Static<typeof CreateActivityBodySchema>;
-type EditActivityBodyType = Static<typeof EditActivityBodySchema>;
+import { verifyJwt } from "../jwt/middleware.js";
 
 async function uploadToCloudinary(file: File): Promise<IImage | null> {
   try {
@@ -21,7 +17,7 @@ async function uploadToCloudinary(file: File): Promise<IImage | null> {
     const fileUri = `data:${file.type};base64,${base64String}`;
     const uploadResponse = await cloudinary.uploader.upload(fileUri, {
       upload_preset: "immifit",
-      public_id: `immifit/${uuidv4()}`,
+      public_id: `immifit/${crypto.randomUUID()}`,
     });
 
     return {
@@ -37,38 +33,17 @@ async function uploadToCloudinary(file: File): Promise<IImage | null> {
 }
 
 export const activitiesPlugin = new Elysia({ prefix: "/activities" })
+  .use(verifyJwt)
   .get(
     "/",
-    async ({ set }) => {
-      try {
-        const activities = await Activities.find().sort({ date: -1 });
-        set.status = 200;
-        return { status: "SUCCESS", data: activities };
-      } catch (error) {
-        console.error("Error fetching all activities:", error);
-        set.status = 500;
-        return {
-          status: "INTERNAL_SERVER_ERROR",
-          message: "Error fetching activities",
-        };
-      }
-    },
-    {
-      detail: { summary: "Get All Activities", tags: ["Activities"] },
-    },
-  )
-
-  .get(
-    "/user/:userId",
-    async ({ params, set }) => {
-      const { userId } = params;
+    async ({ userId, set }) => {
       try {
         const userExists = await User.exists({ userId: userId });
         if (!userExists) throw new NotFoundError("User not found");
-
-        const activities = await Activities.find({ user_id: userId }).sort({
+        const activities = await Activities.find({ userId: userId }).sort({
           date: -1,
         });
+
         set.status = 200;
         return { status: "SUCCESS", data: activities };
       } catch (error) {
@@ -76,6 +51,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
           set.status = 404;
           return { status: "NOT_FOUND", message: error.message };
         }
+
         console.error("Error fetching activities by user ID:", error);
         set.status = 500;
         return {
@@ -85,7 +61,6 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
       }
     },
     {
-      params: UserIdParamsSchema,
       detail: { summary: "Get Activities by User ID", tags: ["Activities"] },
     },
   )
@@ -99,6 +74,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
         if (!activity) {
           throw new NotFoundError("Activity not found");
         }
+
         set.status = 200;
         return { status: "SUCCESS", data: activity };
       } catch (error) {
@@ -122,7 +98,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
   .post(
     "/",
-    async ({ body, set }: { body: CreateActivityBodyType; set: any }) => {
+    async ({ body, set }) => {
       const { img, userId, date, ...activityData } = body;
 
       try {
@@ -142,7 +118,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
         const newActivity = new Activities({
           ...activityData,
-          activityId: uuidv4(),
+          activityId: crypto.randomUUID(),
           user_id: user.userId,
           img: uploadedImgData,
           date: new Date(date),
@@ -185,10 +161,6 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
       params,
       body,
       set,
-    }: {
-      params: { activityId: string };
-      body: EditActivityBodyType;
-      set: any;
     }) => {
       const { activityId } = params;
       const { img, date, ...updateData } = body;
