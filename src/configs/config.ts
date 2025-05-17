@@ -1,7 +1,4 @@
-import dotenv from "dotenv";
 import { ConnectOptions } from "mongoose";
-
-dotenv.config();
 
 interface BaseConfig {
   port: number | string;

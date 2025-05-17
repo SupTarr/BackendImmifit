@@ -39,7 +39,7 @@ const app = new Elysia()
     set.status = 500;
     return {
       status: "INTERNAL_SERVER_ERROR",
-      message: "An unexpected error occurred: " + error,
+      message: "An unexpected error: " + error,
     };
   })
   .get("/", () => ({ status: "SUCCESS" }))
