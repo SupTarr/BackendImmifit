@@ -157,11 +157,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
   .put(
     "/:activityId",
-    async ({
-      params,
-      body,
-      set,
-    }) => {
+    async ({ params, body, set }) => {
       const { activityId } = params;
       const { img, date, ...updateData } = body;
 

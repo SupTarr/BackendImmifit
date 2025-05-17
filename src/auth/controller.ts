@@ -1,5 +1,4 @@
 import { Elysia } from "elysia";
-import { v4 as uuidv4 } from "uuid";
 import User, { IUser } from "../models/userModel.js";
 import {
   LoginBodySchema,
@@ -59,29 +58,28 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
       const { email, username, password } = body;
       const duplicateEmail = await User.findOne({ email: email }).exec();
       if (duplicateEmail) {
-        set.status = 409;
+        set.status = 400;
         return { status: "INVALID_REQUEST", message: "Email already exists" };
       }
 
       try {
-        const userId = "USER:" + uuidv4();
+        const userId = "USER:" + crypto.randomUUID();
         const hashedPwd = await Bun.password.hash(password, {
           algorithm: "bcrypt",
           cost: 10,
         });
 
         const newUser = await User.create({
-          userId: userId,
-          email: email,
-          username: username,
+          userId,
+          email,
+          username,
           password: hashedPwd,
           roles: [1000],
         } as Partial<IUser>);
 
-        set.status = 200;
+        set.status = 201;
         return {
           status: "SUCCESS",
-          body: { userId: newUser.userId },
         };
       } catch (error: any) {
         console.error("Error creating user:", error);
@@ -139,7 +137,7 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         };
       }
 
-     const accessToken = await setJwtAndCookie({
+      const accessToken = await setJwtAndCookie({
         jwtAccess,
         jwtRefresh,
         cookie,
