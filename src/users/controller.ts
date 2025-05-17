@@ -1,5 +1,4 @@
 import { Elysia, t } from "elysia";
-import { v4 as uuidv4 } from "uuid";
 import User, { IUser } from "../models/userModel.js";
 import Profile, { IProfile } from "../models/profileModel.js";
 import { ProfileBodySchema } from "./model.js";
@@ -63,7 +62,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
         const updateOperation: any = {
           $set: updatePayload,
           $setOnInsert: {
-            profileId: "PROFILE:" + uuidv4(),
+            profileId: "PROFILE:" + crypto.randomUUID(),
             userId: userId,
           },
         };
