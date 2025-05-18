@@ -15,6 +15,7 @@ export interface IProfile extends Document {
   height: number;
   weight: number;
   bmi?: number;
+  imageUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -62,6 +63,10 @@ const profileSchema: Schema<IProfile> = new Schema(
     bmi: {
       type: Number,
       min: 0,
+    }, 
+    imageUrl: {
+      type: String,
+      trim: true,
     },
   },
   {
