@@ -62,6 +62,17 @@ export const authPlugin = new Elysia({ prefix: "/auth" })
         return { status: "INVALID_REQUEST", message: "Email already exists" };
       }
 
+      const duplicateUsername = await User.findOne({
+        username: username,
+      }).exec();
+      if (duplicateUsername) {
+        set.status = 400;
+        return {
+          status: "INVALID_REQUEST",
+          message: "Username already exists",
+        };
+      }
+
       try {
         const userId = "USER:" + crypto.randomUUID();
         const hashedPwd = await Bun.password.hash(password, {

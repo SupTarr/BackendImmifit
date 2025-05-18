@@ -13,6 +13,8 @@ export const RegisterBodySchema = t.Object({
 
 export interface AccessTokenPayload {
   userId: string;
+  username: string;
+  email: string;
   roles: number[];
 }
 
