@@ -7,7 +7,7 @@ import { verifyJwt } from "../jwt/middleware.js";
 export const userPlugin = new Elysia({ prefix: "/users" })
   .use(verifyJwt)
   .get(
-    "/profile",
+    "/",
     async ({ userId, set }) => {
       try {
         const user: IUser | null = await User.findOne({
@@ -26,7 +26,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
         }).select("-__v");
 
         set.status = 200;
-        return { status: "SUCCESS", body: { user, profile } };
+        return { status: "SUCCESS", body: { ...profile } };
       } catch (error) {
         console.error("Error fetching user by ID:", error);
         set.status = 500;
@@ -44,7 +44,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
     },
   )
   .post(
-    "/profile",
+    "/",
     async ({ userId, body, set }) => {
       try {
         const userExists = await User.exists({ userId: userId });
