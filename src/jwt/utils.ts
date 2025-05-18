@@ -37,6 +37,8 @@ export const setJwtAndCookie = async ({
 }: any) => {
   const accessToken = await jwtAccess.sign({
     userId: user.userId,
+    username: user.username,
+    email: user.email,
     roles: user.roles,
   });
 
