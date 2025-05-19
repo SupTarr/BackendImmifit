@@ -10,6 +10,8 @@ export const jwtAccessSetup = new Elysia({
     schema: t.Object({
       userId: t.String(),
       roles: t.Array(t.Number()),
+      username: t.String(),
+      email: t.String(),
     }),
     secret: config.accessTokenSecret,
     exp: "15m",
