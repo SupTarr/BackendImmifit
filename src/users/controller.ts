@@ -56,9 +56,11 @@ export const userPlugin = new Elysia({ prefix: "/users" })
           };
         }
 
-        const cmHeight = body.height / 100;
-        const bmi = body.weight / (cmHeight * cmHeight);
-        const updatePayload: Partial<IProfile> = { ...body, bmi };
+        const bmi = body.weight / (body.height * body.height);
+        const updatePayload: Partial<IProfile> = {
+          ...body,
+          bmi: Number(bmi.toFixed(2)),
+        };
         const updateOperation: any = {
           $set: updatePayload,
           $setOnInsert: {
