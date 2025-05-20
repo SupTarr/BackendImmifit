@@ -6,9 +6,11 @@ export enum Gender {
 }
 
 export const ProfileBodySchema = t.Object({
+  imageId: t.Optional(t.String()),
+  file: t.Optional(t.File({ format: "image/*" })),
   about: t.Optional(t.String()),
-  gender: t.Enum(Gender),
-  age: t.Number({ minimum: 0 }),
-  height: t.Number({ minimum: 0 }),
-  weight: t.Number({ minimum: 0 }),
+  gender: t.Numeric(Gender),
+  age: t.Numeric({ minimum: 0 }),
+  height: t.Numeric({ minimum: 0 }),
+  weight: t.Numeric({ minimum: 0 }),
 });

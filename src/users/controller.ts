@@ -3,15 +3,16 @@ import User, { IUser } from "../models/userModel.js";
 import Profile, { IProfile } from "../models/profileModel.js";
 import { ProfileBodySchema } from "./model.js";
 import { verifyJwt } from "../jwt/middleware.js";
+import { replaceCloudinaryImage } from "../cloudinary/utils.js";
 
 export const userPlugin = new Elysia({ prefix: "/users" })
   .use(verifyJwt)
   .get(
     "/",
-    async ({ userId, set }) => {
+    async ({ store, set }) => {
       try {
         const user: IUser | null = await User.findOne({
-          userId: userId,
+          userId: store.userId,
         })
           .select("-_id -__v -password -refreshToken -roles")
           .exec();
@@ -22,7 +23,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
         }
 
         const profile: IProfile | null = await Profile.findOne({
-          userId: userId,
+          userId: store.userId,
         }).select("-__v");
 
         set.status = 200;
@@ -45,9 +46,9 @@ export const userPlugin = new Elysia({ prefix: "/users" })
   )
   .post(
     "/",
-    async ({ userId, body, set }) => {
+    async ({ store, body, set }) => {
       try {
-        const userExists = await User.exists({ userId: userId });
+        const userExists = await User.exists({ userId: store.userId });
         if (!userExists) {
           set.status = 400;
           return {
@@ -61,16 +62,30 @@ export const userPlugin = new Elysia({ prefix: "/users" })
           ...body,
           bmi: Number(bmi.toFixed(2)),
         };
+
+        if (body.file) {
+          const res = await replaceCloudinaryImage(
+            "profile",
+            body?.imageId,
+            body.file,
+          );
+
+          updatePayload.image = {
+            id: res?.id,
+            url: res?.url,
+          };
+        }
+
         const updateOperation: any = {
           $set: updatePayload,
           $setOnInsert: {
             profileId: "PROFILE:" + crypto.randomUUID(),
-            userId: userId,
+            userId: store.userId,
           },
         };
 
         const updatedProfile = await Profile.findOneAndUpdate(
-          { userId: userId },
+          { userId: store.userId },
           updateOperation,
           {
             new: true,
@@ -83,7 +98,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
         set.status = 200;
         const { _id, profileId, ...profileToReturn } =
           updatedProfile.toObject();
-        return { status: "SUCCESS", data: profileToReturn };
+        return { status: "SUCCESS", body: profileToReturn };
       } catch (error: any) {
         console.error("Error adding/updating user profile:", error);
         set.status = 500;

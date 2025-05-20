@@ -1,8 +1,10 @@
 import { Elysia, NotFoundError } from "elysia";
-import { cloudinary } from "../configs/cloudinary.js";
+import { cloudinary } from "../cloudinary/config.js";
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
-import Activities, { IActivities, IImage } from "../models/activitiesModel.js";
+import Activities, { IActivities } from "../models/activitiesModel.js";
+import { uploadToCloudinary } from "../cloudinary/utils.js";
+import { IImage } from "../models/imageModel.js";
 import {
   CreateActivityBodySchema,
   ActivityIdParamsSchema,
@@ -10,42 +12,22 @@ import {
 } from "./model.js";
 import { verifyJwt } from "../jwt/middleware.js";
 
-async function uploadToCloudinary(file: File): Promise<IImage | null> {
-  try {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64String = buffer.toString("base64");
-    const fileUri = `data:${file.type};base64,${base64String}`;
-    const uploadResponse = await cloudinary.uploader.upload(fileUri, {
-      upload_preset: "immifit",
-      public_id: `immifit/${crypto.randomUUID()}`,
-    });
-
-    return {
-      name: file.name,
-      id: uploadResponse.public_id,
-      url: uploadResponse.secure_url,
-      contentType: file.type,
-    };
-  } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    return null;
-  }
-}
-
 export const activitiesPlugin = new Elysia({ prefix: "/activities" })
   .use(verifyJwt)
   .get(
     "/",
-    async ({ userId, set }) => {
+    async ({ store, set }) => {
       try {
-        const userExists = await User.exists({ userId: userId });
+        const userExists = await User.exists({ userId: store.userId });
         if (!userExists) throw new NotFoundError("User not found");
-        const activities = await Activities.find({ userId: userId }).sort({
-          date: -1,
-        });
+        const activities = await Activities.find({ userId: store.userId }).sort(
+          {
+            date: -1,
+          },
+        );
 
         set.status = 200;
-        return { status: "SUCCESS", data: activities };
+        return { status: "SUCCESS", body: activities };
       } catch (error) {
         if (error instanceof NotFoundError) {
           set.status = 404;
@@ -76,7 +58,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
         }
 
         set.status = 200;
-        return { status: "SUCCESS", data: activity };
+        return { status: "SUCCESS", body: activity };
       } catch (error) {
         if (error instanceof NotFoundError) {
           set.status = 404;
@@ -107,7 +89,10 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
           throw new NotFoundError("User specified not found.");
         }
 
-        const uploadedImgData = await uploadToCloudinary(img as File);
+        const uploadedImgData = await uploadToCloudinary(
+          "activities",
+          img as File,
+        );
         if (!uploadedImgData) {
           set.status = 500;
           return {
@@ -127,7 +112,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
         await newActivity.save();
 
         set.status = 201;
-        return { status: "SUCCESS", data: newActivity };
+        return { status: "SUCCESS", body: newActivity };
       } catch (error: any) {
         if (error instanceof NotFoundError) {
           set.status = 404;
@@ -175,9 +160,9 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
         let uploadedImgData: IImage | null | undefined = undefined;
 
         if (img && img instanceof File) {
-          if (existingActivity.img && existingActivity.img.id) {
+          if (existingActivity.image && existingActivity.image.id) {
             try {
-              await cloudinary.uploader.destroy(existingActivity.img.id);
+              await cloudinary.uploader.destroy(existingActivity.image.id);
             } catch (deleteError) {
               console.warn(
                 "Cloudinary: Failed to delete old image during update:",
@@ -186,7 +171,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
             }
           }
 
-          uploadedImgData = await uploadToCloudinary(img);
+          uploadedImgData = await uploadToCloudinary("activities", img);
           if (uploadedImgData === null) {
             set.status = 500;
             return {
@@ -202,7 +187,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
         const finalUpdateData: Partial<IActivities> = { ...updateData };
         if (uploadedImgData) {
-          finalUpdateData.img = uploadedImgData;
+          finalUpdateData.image = uploadedImgData;
         }
 
         const updatedActivity = await Activities.findOneAndUpdate(
@@ -216,7 +201,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
         }
 
         set.status = 200;
-        return { status: "SUCCESS", data: updatedActivity };
+        return { status: "SUCCESS", body: updatedActivity };
       } catch (error: any) {
         if (error instanceof NotFoundError) {
           set.status = 404;
@@ -255,9 +240,9 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
           throw new NotFoundError("Activity not found.");
         }
 
-        if (activity.img && activity.img.id) {
+        if (activity.image && activity.image.id) {
           try {
-            await cloudinary.uploader.destroy(activity.img.id);
+            await cloudinary.uploader.destroy(activity.image.id);
           } catch (deleteError) {
             console.error(
               "Cloudinary delete error (activity deletion):",
