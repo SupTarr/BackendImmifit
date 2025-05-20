@@ -1,11 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-
-export interface IImage {
-  name: string;
-  id?: string;
-  url?: string;
-  contentType?: string;
-}
+import { IImage } from "./imageModel.js";
 
 export interface IActivities extends Document {
   activityId: string;
@@ -15,7 +9,7 @@ export interface IActivities extends Document {
   startTime: Date;
   endTime: Date;
   description?: string;
-  img: IImage;
+  image: IImage;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -52,14 +46,9 @@ const activitiesSchema: Schema<IActivities> = new Schema(
       required: true,
     },
     description: String,
-    img: {
-      name: {
-        type: String,
-        required: true,
-      },
+    image: {
       id: String,
       url: String,
-      contentType: String,
     },
   },
   {

@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { IUser } from "./userModel.js";
+import { IImage } from "./imageModel.js";
 
 export enum Gender {
   Man = 1000,
@@ -15,7 +16,7 @@ export interface IProfile extends Document {
   height: number;
   weight: number;
   bmi?: number;
-  imageUrl?: string;
+  image?: IImage;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -63,10 +64,10 @@ const profileSchema: Schema<IProfile> = new Schema(
     bmi: {
       type: Number,
       min: 0,
-    }, 
-    imageUrl: {
-      type: String,
-      trim: true,
+    },
+    image: {
+      id: String,
+      url: String,
     },
   },
   {
