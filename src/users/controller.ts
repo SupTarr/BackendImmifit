@@ -24,10 +24,13 @@ export const userPlugin = new Elysia({ prefix: "/users" })
 
         const profile: IProfile | null = await Profile.findOne({
           userId: store.userId,
-        }).select("-__v");
+        })
+          .select("-__v -_id")
+          .exec();
 
+        const { _id, __v, ...cleanProfile } = profile?.toObject();
         set.status = 200;
-        return { status: "SUCCESS", body: { ...profile } };
+        return { status: "SUCCESS", body: { ...cleanProfile } };
       } catch (error) {
         console.error("Error fetching user by ID:", error);
         set.status = 500;
@@ -93,12 +96,13 @@ export const userPlugin = new Elysia({ prefix: "/users" })
             runValidators: true,
             setDefaultsOnInsert: true,
           },
-        ).select("-__v");
+        )
+          .select("-__v -_id")
+          .exec();
 
+        const { _id, __v, ...cleanProfile } = updatedProfile.toObject();
         set.status = 200;
-        const { _id, profileId, ...profileToReturn } =
-          updatedProfile.toObject();
-        return { status: "SUCCESS", body: profileToReturn };
+        return { status: "SUCCESS", body: cleanProfile };
       } catch (error: any) {
         console.error("Error adding/updating user profile:", error);
         set.status = 500;
