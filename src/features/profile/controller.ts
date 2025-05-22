@@ -5,21 +5,19 @@ import { ProfileBodySchema } from "./model.js";
 import { verifyJwt } from "../jwt/middleware.js";
 import { replaceCloudinaryImage } from "../../cloudinary/utils.js";
 
-export const userPlugin = new Elysia({ prefix: "/users" })
+export const profilePlugin = new Elysia({ prefix: "/profile" })
   .use(verifyJwt)
   .get(
-    "/profile",
+    "/",
     async ({ store, set }) => {
       try {
-        const user: IUser | null = await User.findOne({
-          userId: store.userId,
-        })
-          .select("-_id -__v -password -refreshToken -roles")
-          .exec();
-
-        if (!user) {
+        const userExists = await User.exists({ userId: store.userId });
+        if (!userExists) {
           set.status = 400;
-          return { status: "INVALID_REQUEST", message: "User not found" };
+          return {
+            status: "INVALID_REQUEST",
+            message: `User not found`,
+          };
         }
 
         const profile: IProfile | null = await Profile.findOne({
@@ -49,7 +47,7 @@ export const userPlugin = new Elysia({ prefix: "/users" })
   )
 
   .post(
-    "/profile",
+    "/",
     async ({ store, body, set }) => {
       try {
         const userExists = await User.exists({ userId: store.userId });
