@@ -1,14 +1,14 @@
 import { Elysia, t } from "elysia";
-import User, { IUser } from "../models/userModel.js";
-import Profile, { IProfile } from "../models/profileModel.js";
+import User, { IUser } from "../auth/model.js";
+import Profile, { IProfile } from "./model.js";
 import { ProfileBodySchema } from "./model.js";
 import { verifyJwt } from "../jwt/middleware.js";
-import { replaceCloudinaryImage } from "../cloudinary/utils.js";
+import { replaceCloudinaryImage } from "../../cloudinary/utils.js";
 
 export const userPlugin = new Elysia({ prefix: "/users" })
   .use(verifyJwt)
   .get(
-    "/",
+    "/profile",
     async ({ store, set }) => {
       try {
         const user: IUser | null = await User.findOne({
@@ -42,13 +42,14 @@ export const userPlugin = new Elysia({ prefix: "/users" })
     },
     {
       detail: {
-        summary: "Get User by ID",
-        tags: ["Users"],
+        summary: "Get Profile by User ID",
+        tags: ["Users", "Profile"],
       },
     },
   )
+
   .post(
-    "/",
+    "/profile",
     async ({ store, body, set }) => {
       try {
         const userExists = await User.exists({ userId: store.userId });

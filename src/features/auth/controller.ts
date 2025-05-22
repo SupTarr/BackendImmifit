@@ -1,10 +1,7 @@
 import { Elysia } from "elysia";
-import User, { IUser } from "../models/userModel.js";
-import {
-  LoginBodySchema,
-  RegisterBodySchema,
-  RefreshTokenPayload,
-} from "./model.js";
+import User, { IUser } from "./model.js";
+import { LoginBodySchema, RegisterBodySchema } from "./model.js";
+import { RefreshTokenPayload } from "../jwt/model.js";
 import {
   jwtAccessSetup,
   jwtRefreshSetup,

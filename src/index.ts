@@ -5,9 +5,9 @@ import { swagger } from "@elysiajs/swagger";
 import { logger } from "@bogeychan/elysia-logger";
 import mongoose from "mongoose";
 import config from "./configs/config.js";
-import { authPlugin } from "./auth/controller.js";
-import { userPlugin } from "./users/controller.js";
-import { activitiesPlugin } from "./activities/controller.js";
+import { authPlugin } from "./features/auth/controller.js";
+import { userPlugin } from "./features/users/controller.js";
+import { activitiesPlugin } from "./features/activities/controller.js";
 
 const app = new Elysia()
   .onRequest(async (ctx) => {

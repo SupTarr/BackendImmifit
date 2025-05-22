@@ -1,9 +1,17 @@
+import { t } from "elysia";
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { Role } from "./const.js";
 
-export enum Role {
-  User = 1000,
-  Admin = 2000,
-}
+export const LoginBodySchema = t.Object({
+  email: t.String({ format: "email" }),
+  password: t.String(),
+});
+
+export const RegisterBodySchema = t.Object({
+  email: t.String({ format: "email" }),
+  username: t.String({ minLength: 3 }),
+  password: t.String({ minLength: 8 }),
+});
 
 export interface IUser extends Document {
   userId: string;
@@ -58,5 +66,4 @@ const userSchema: Schema<IUser> = new Schema(
 );
 
 const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
-
 export default User;
