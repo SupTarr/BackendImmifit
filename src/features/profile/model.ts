@@ -6,7 +6,7 @@ import { Gender } from "./const.js";
 
 export const ProfileBodySchema = t.Object({
   imageId: t.Optional(t.String()),
-  file: t.Optional(t.File({ format: "image/*" })),
+  imageFile: t.Optional(t.File({ format: "image/*" })),
   about: t.Optional(t.String()),
   gender: t.Numeric(Gender),
   age: t.Numeric({ minimum: 0 }),

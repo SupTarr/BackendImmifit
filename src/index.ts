@@ -6,7 +6,7 @@ import { logger } from "@bogeychan/elysia-logger";
 import mongoose from "mongoose";
 import config from "./configs/config.js";
 import { authPlugin } from "./features/auth/controller.js";
-import { userPlugin } from "./features/users/controller.js";
+import { profilePlugin } from "./features/profile/controller.js";
 import { activitiesPlugin } from "./features/activities/controller.js";
 
 const app = new Elysia()
@@ -32,7 +32,7 @@ const app = new Elysia()
   .use(cookie())
   .use(logger())
   .use(authPlugin)
-  .use(userPlugin)
+  .use(profilePlugin)
   .use(activitiesPlugin)
   .onError(({ code, error, set }) => {
     console.error(`Error caught: ${code}`, error);
