@@ -65,11 +65,11 @@ export const profilePlugin = new Elysia({ prefix: "/profile" })
           bmi: Number(bmi.toFixed(2)),
         };
 
-        if (body.file) {
+        if (body.imageFile) {
           const res = await replaceCloudinaryImage(
             "profile",
             body?.imageId,
-            body.file,
+            body.imageFile,
           );
 
           updatePayload.image = {
