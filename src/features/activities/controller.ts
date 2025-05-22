@@ -1,10 +1,10 @@
 import { Elysia, NotFoundError } from "elysia";
-import { cloudinary } from "../cloudinary/config.js";
+import { cloudinary } from "../../cloudinary/config.js";
 import mongoose from "mongoose";
-import User from "../models/userModel.js";
-import Activities, { IActivities } from "../models/activitiesModel.js";
-import { uploadToCloudinary } from "../cloudinary/utils.js";
-import { IImage } from "../models/imageModel.js";
+import User from "../auth/model.js";
+import Activities, { IActivities } from "./model.js";
+import { uploadToCloudinary } from "../../cloudinary/utils.js";
+import { IImage } from "../../models/image.js";
 import {
   CreateActivityBodySchema,
   ActivityIdParamsSchema,

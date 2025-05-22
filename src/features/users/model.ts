@@ -1,11 +1,18 @@
+import { t } from "elysia";
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { IUser } from "./userModel.js";
-import { IImage } from "./imageModel.js";
+import { IUser } from "../auth/model.js";
+import { IImage } from "../../models/image.js";
+import { Gender } from "./const.js";
 
-export enum Gender {
-  Man = 1000,
-  Woman = 2000,
-}
+export const ProfileBodySchema = t.Object({
+  imageId: t.Optional(t.String()),
+  file: t.Optional(t.File({ format: "image/*" })),
+  about: t.Optional(t.String()),
+  gender: t.Numeric(Gender),
+  age: t.Numeric({ minimum: 0 }),
+  height: t.Numeric({ minimum: 0 }),
+  weight: t.Numeric({ minimum: 0 }),
+});
 
 export interface IProfile extends Document {
   profileId: string;

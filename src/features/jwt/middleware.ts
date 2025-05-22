@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
-import { AccessTokenPayload } from "../auth/model.js";
-import { jwtAccessSetup } from "../jwt/utils.js";
+import { AccessTokenPayload } from "./model.js";
+import { jwtAccessSetup } from "./utils.js";
 
 export const verifyJwt = new Elysia()
   .use(jwtAccessSetup)

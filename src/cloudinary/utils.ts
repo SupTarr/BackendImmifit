@@ -1,5 +1,5 @@
 import { cloudinary } from "./config";
-import { IImage } from "../models/imageModel";
+import { IImage } from "../models/image";
 import { Readable } from "stream";
 
 export async function uploadToCloudinary(
