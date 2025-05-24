@@ -2,14 +2,9 @@ import { Elysia, NotFoundError } from "elysia";
 import { cloudinary } from "../../cloudinary/config.js";
 import mongoose from "mongoose";
 import User from "../auth/model.js";
-import Activities, { IActivities } from "./model.js";
-import { uploadToCloudinary } from "../../cloudinary/utils.js";
-import { IImage } from "../../models/image.js";
-import {
-  CreateActivityBodySchema,
-  ActivityIdParamsSchema,
-  EditActivityBodySchema,
-} from "./model.js";
+import Activities from "./model.js";
+import { replaceCloudinaryImage } from "../../cloudinary/utils.js";
+import { CreateActivityBodySchema, ActivityIdParamsSchema } from "./model.js";
 import { verifyJwt } from "../jwt/middleware.js";
 
 export const activitiesPlugin = new Elysia({ prefix: "/activities" })
@@ -22,7 +17,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
         if (!userExists) throw new NotFoundError("User not found");
         const activities = await Activities.find({ userId: store.userId }).sort(
           {
-            date: -1,
+            date: -1, 
           },
         );
 
@@ -64,6 +59,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
           set.status = 404;
           return { status: "NOT_FOUND", message: error.message };
         }
+
         console.error("Error fetching activity by ID:", error);
         set.status = 500;
         return {
@@ -80,19 +76,19 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
 
   .post(
     "/",
-    async ({ body, set }) => {
-      const { img, userId, date, ...activityData } = body;
-
+    async ({ store, body, set }) => {
       try {
-        const user = await User.findOne({ userId });
+        const user = await User.findOne({ userId: store.userId });
         if (!user) {
           throw new NotFoundError("User specified not found.");
         }
 
-        const uploadedImgData = await uploadToCloudinary(
+        const uploadedImgData = await replaceCloudinaryImage(
           "activities",
-          img as File,
+          body.imageId,
+          body.imageFile as File,
         );
+
         if (!uploadedImgData) {
           set.status = 500;
           return {
@@ -102,15 +98,13 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
         }
 
         const newActivity = new Activities({
-          ...activityData,
-          activityId: crypto.randomUUID(),
-          user_id: user.userId,
+          ...body,
+          activityId: "ACTIVITIES:" + crypto.randomUUID(),
+          userId: user.userId,
           img: uploadedImgData,
-          date: new Date(date),
         });
 
         await newActivity.save();
-
         set.status = 201;
         return { status: "SUCCESS", body: newActivity };
       } catch (error: any) {
@@ -118,6 +112,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
           set.status = 404;
           return { status: "NOT_FOUND", message: error.message };
         }
+
         if (error instanceof mongoose.Error.ValidationError) {
           set.status = 400;
           return {
@@ -126,6 +121,7 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
             details: error.message,
           };
         }
+
         console.error("Error creating activity:", error);
         set.status = 500;
         return {
@@ -137,96 +133,6 @@ export const activitiesPlugin = new Elysia({ prefix: "/activities" })
     {
       body: CreateActivityBodySchema,
       detail: { summary: "Create New Activity", tags: ["Activities"] },
-    },
-  )
-
-  .put(
-    "/:activityId",
-    async ({ params, body, set }) => {
-      const { activityId } = params;
-      const { img, date, ...updateData } = body;
-
-      if (Object.keys(updateData).length === 0 && !img) {
-        set.status = 400;
-        return { status: "BAD_REQUEST", message: "No update data provided." };
-      }
-
-      try {
-        const existingActivity = await Activities.findOne({ activityId });
-        if (!existingActivity) {
-          throw new NotFoundError("Activity not found.");
-        }
-
-        let uploadedImgData: IImage | null | undefined = undefined;
-
-        if (img && img instanceof File) {
-          if (existingActivity.image && existingActivity.image.id) {
-            try {
-              await cloudinary.uploader.destroy(existingActivity.image.id);
-            } catch (deleteError) {
-              console.warn(
-                "Cloudinary: Failed to delete old image during update:",
-                deleteError,
-              );
-            }
-          }
-
-          uploadedImgData = await uploadToCloudinary("activities", img);
-          if (uploadedImgData === null) {
-            set.status = 500;
-            return {
-              status: "UPLOAD_FAILED",
-              message: "Failed to upload new image.",
-            };
-          }
-        } else if (img !== undefined) {
-          console.warn(
-            "Received 'img' field in PUT request, but it was not a file.",
-          );
-        }
-
-        const finalUpdateData: Partial<IActivities> = { ...updateData };
-        if (uploadedImgData) {
-          finalUpdateData.image = uploadedImgData;
-        }
-
-        const updatedActivity = await Activities.findOneAndUpdate(
-          { activityId },
-          { $set: finalUpdateData },
-          { new: true, runValidators: true },
-        );
-
-        if (!updatedActivity) {
-          throw new NotFoundError("Activity not found after update attempt.");
-        }
-
-        set.status = 200;
-        return { status: "SUCCESS", body: updatedActivity };
-      } catch (error: any) {
-        if (error instanceof NotFoundError) {
-          set.status = 404;
-          return { status: "NOT_FOUND", message: error.message };
-        }
-        if (error instanceof mongoose.Error.ValidationError) {
-          set.status = 400;
-          return {
-            status: "VALIDATION_ERROR",
-            message: "Activity data validation failed.",
-            details: error.message,
-          };
-        }
-        console.error("Error editing activity:", error);
-        set.status = 500;
-        return {
-          status: "INTERNAL_SERVER_ERROR",
-          message: "Error editing activity",
-        };
-      }
-    },
-    {
-      params: ActivityIdParamsSchema,
-      body: EditActivityBodySchema,
-      detail: { summary: "Edit Activity by ID", tags: ["Activities"] },
     },
   )
 
