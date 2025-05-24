@@ -4,124 +4,95 @@ import { IImage } from "../../models/image";
 
 export const ActivityIdParamsSchema = t.Object({
   activityId: t.String({
-    pattern: "^[0-9a-fA-F]{24}$",
+    pattern: "^ACTIVITIES:[0-9a-fA-F]{24}$",
     error: "Invalid Activity ID format.",
   }),
 });
 
-export const ActivityTypeEnum = t.Enum(
-  {
-    Running: "Running",
-    Cycling: "Cycling",
-    Swimming: "Swimming",
-    WeightTraining: "Weight training",
-    Walking: "Walking",
-  },
-  { error: "Invalid activity type." },
-);
-
-export const CreateActivityBaseSchema = t.Object({
-  userId: t.String(),
-  type: ActivityTypeEnum,
-  duration: t.Numeric({
-    minimum: 0,
-    error: "Duration must be a positive number.",
-  }),
-  calories: t.Numeric({
-    minimum: 0,
-    error: "Calories must be a positive number.",
-  }),
-  distance: t.Optional(t.Numeric({ minimum: 0 })),
-  description: t.Optional(t.String()),
-  date: t.String({
-    format: "date-time",
-    error: "Invalid date format. Use ISO 8601.",
-  }),
-});
-
 export const CreateActivityBodySchema = t.Intersect([
-  CreateActivityBaseSchema,
   t.Object({
-    img: t.File({
+    imageFile: t.File({
       maxSize: "5m",
       type: ["image/jpeg", "image/png", "image/webp"],
       error: "Invalid image file provided.",
     }),
-  }),
-]);
-
-export const EditActivityBaseSchema = t.Partial(
-  t.Object({
-    activity_type: ActivityTypeEnum,
-    duration: t.Numeric({ minimum: 0 }),
-    calories: t.Numeric({ minimum: 0 }),
-    distance: t.Optional(t.Numeric({ minimum: 0 })),
+    imageId: t.String(),
+    activityTypeId: t.String(),
+    title: t.String(),
     description: t.Optional(t.String()),
-    date: t.String({ format: "date-time" }),
-  }),
-);
-
-export const EditActivityBodySchema = t.Intersect([
-  EditActivityBaseSchema,
-  t.Object({
-    img: t.Optional(
-      t.File({
-        maxSize: "5m",
-        type: ["image/jpeg", "image/png", "image/webp"],
-        error: "Invalid image file provided for update.",
+    calories: t.Optional(
+      t.Numeric({
+        minimum: 0,
+        error: "Calories must be a positive number.",
       }),
     ),
+    startDate: t.String({
+      format: "date-time",
+      error: "Invalid start date format. Use ISO 8601.",
+    }),
+    endDate: t.String({
+      format: "date-time",
+      error: "Invalid end date format. Use ISO 8601.",
+    }),
+    date: t.String({
+      format: "date-time",
+      error: "Invalid date format. Use ISO 8601.",
+    }),
   }),
 ]);
 
 export interface IActivities extends Document {
-  activityId: string;
-  userId: string;
-  type: "Running" | "Cycling" | "Swimming" | "Weight training" | "Walking";
-  title: string;
-  startTime: Date;
-  endTime: Date;
-  description?: string;
   image: IImage;
+  activityId: string;
+  activityTypeId: string;
+  userId: string;
+  title: string;
+  description?: string;
+  calories?: number;
+  startDate: Date;
+  endDate: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const activitiesSchema: Schema<IActivities> = new Schema(
   {
+    image: {
+      id: String,
+      url: String,
+    },
     activityId: {
       type: String,
       required: true,
       unique: true,
       index: true,
     },
+    activityTypeId: {
+      type: String,
+      required: true,
+
+    },
     userId: {
       type: String,
       required: true,
-      unique: true,
       index: true,
-    },
-    type: {
-      type: String,
-      required: true,
-      enum: ["Running", "Cycling", "Swimming", "Weight training", "Walking"],
     },
     title: {
       type: String,
       required: true,
     },
-    startTime: {
-      type: Date,
-      required: true,
-    },
-    endTime: {
-      type: Date,
-      required: true,
-    },
     description: String,
-    image: {
-      id: String,
-      url: String,
+    calories: {
+      type: Number,
+      min: 0,
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
     },
   },
   {
