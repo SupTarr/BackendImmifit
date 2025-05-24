@@ -15,6 +15,7 @@ export const ProfileBodySchema = t.Object({
 });
 
 export interface IProfile extends Document {
+  image?: IImage;
   profileId: string;
   userId: IUser["userId"];
   about?: string;
@@ -23,13 +24,16 @@ export interface IProfile extends Document {
   height: number;
   weight: number;
   bmi?: number;
-  image?: IImage;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const profileSchema: Schema<IProfile> = new Schema(
   {
+    image: {
+      id: String,
+      url: String,
+    },
     profileId: {
       type: String,
       required: true,
@@ -71,10 +75,6 @@ const profileSchema: Schema<IProfile> = new Schema(
     bmi: {
       type: Number,
       min: 0,
-    },
-    image: {
-      id: String,
-      url: String,
     },
   },
   {
