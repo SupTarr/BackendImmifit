@@ -41,11 +41,13 @@ const app = new Elysia()
     };
   })
   .get("/", () => ({ status: "SUCCESS" }))
-  .listen({
-    hostname: "0.0.0.0",
-    port: config.port,
-  });
+  // .listen({
+  //   hostname: "0.0.0.0",
+  //   port: config.port,
+  // });
 
 console.log(
   `🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`,
 );
+
+export default app;
