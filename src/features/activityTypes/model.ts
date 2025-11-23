@@ -6,7 +6,7 @@ export interface IActivitieTypes extends Document {
   description?: string;
 }
 
-const activitiesSchema: Schema<IActivitieTypes> = new Schema(
+const activityTypesSchema: Schema<IActivitieTypes> = new Schema(
   {
     activityTypeId: {
       type: String,
@@ -30,7 +30,7 @@ const activitiesSchema: Schema<IActivitieTypes> = new Schema(
 
 const ActivityTypes: Model<IActivitieTypes> = mongoose.model<IActivitieTypes>(
   "ActivityTypes",
-  activitiesSchema,
+  activityTypesSchema,
 );
 
 export default ActivityTypes;

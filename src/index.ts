@@ -1,6 +1,5 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { cookie } from "@elysiajs/cookie";
 import { swagger } from "@elysiajs/swagger";
 import { logger } from "@bogeychan/elysia-logger";
 import mongoose from "mongoose";
@@ -29,7 +28,6 @@ const app = new Elysia()
     }),
   )
   .use(swagger())
-  .use(cookie())
   .use(logger())
   .use(authPlugin)
   .use(profilePlugin)
